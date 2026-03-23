@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { ModalBackdrop } from "../ui/modal-backdrop";
 import type { Task } from "../../types/board";
 import ellipsis from "../../assets/icons/icon-vertical-ellipsis.svg";
+import { TaskActionsMenu } from "./task-actions-menu";
 
 type StatusOption = {
   value: string;
@@ -13,6 +15,8 @@ type TaskModalProps = {
   onClose: () => void;
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
   onChangeStatus: (taskId: string, columnId: string) => void;
+  onEditTask: () => void;
+  onDeleteTask: () => void;
 };
 
 export function TaskModal({
@@ -21,7 +25,11 @@ export function TaskModal({
   onClose,
   onToggleSubtask,
   onChangeStatus,
+  onEditTask,
+  onDeleteTask,
 }: TaskModalProps) {
+  const [isTaskMenuOpen, setIsTaskMenuOpen] = useState(false);
+
   const completedCount = task.subtasks.filter(
     (subtask) => subtask.isCompleted
   ).length;
@@ -34,13 +42,23 @@ export function TaskModal({
             {task.title}
           </h2>
 
-          <button
-            type="button"
-            aria-label="Open task actions"
-            className="shrink-0 text-medium-grey transition hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
-          >
-            <img src={ellipsis} alt="" />
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              aria-label="Open task actions"
+              onClick={() => setIsTaskMenuOpen((prev) => !prev)}
+              className="shrink-0 text-medium-grey transition hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
+            >
+              <img src={ellipsis} alt="" />
+            </button>
+
+            <TaskActionsMenu
+              isOpen={isTaskMenuOpen}
+              onClose={() => setIsTaskMenuOpen(false)}
+              onEditTask={onEditTask}
+              onDeleteTask={onDeleteTask}
+            />
+          </div>
         </div>
 
         {task.description ? (

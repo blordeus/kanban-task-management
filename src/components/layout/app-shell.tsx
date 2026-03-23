@@ -20,6 +20,8 @@ type AppShellProps = {
   isMobileMenuOpen: boolean;
   selectedTask: Task | null;
   isAddTaskOpen: boolean;
+  isEditTaskOpen: boolean;
+  isDeleteTaskOpen: boolean;
   isAddBoardOpen: boolean;
   isEditBoardOpen: boolean;
   isDeleteBoardOpen: boolean;
@@ -32,6 +34,10 @@ type AppShellProps = {
   onCloseTaskModal: () => void;
   onOpenAddTask: () => void;
   onCloseAddTask: () => void;
+  onOpenEditTask: () => void;
+  onCloseEditTask: () => void;
+  onOpenDeleteTask: () => void;
+  onCloseDeleteTask: () => void;
   onOpenAddBoard: () => void;
   onCloseAddBoard: () => void;
   onOpenEditBoard: () => void;
@@ -44,8 +50,15 @@ type AppShellProps = {
     title: string;
     description: string;
     statusColumnId: string;
-    subtasks: string[];
+    subtasks: { id: string; name: string }[];
   }) => void;
+  onUpdateTask: (input: {
+    title: string;
+    description: string;
+    statusColumnId: string;
+    subtasks: { id: string; name: string }[];
+  }) => void;
+  onDeleteTask: () => void;
   onDeleteBoard: () => void;
   onOpenNewColumn: () => void;
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
@@ -64,6 +77,8 @@ export function AppShell({
   isMobileMenuOpen,
   selectedTask,
   isAddTaskOpen,
+  isEditTaskOpen,
+  isDeleteTaskOpen,
   isAddBoardOpen,
   isEditBoardOpen,
   isDeleteBoardOpen,
@@ -75,6 +90,10 @@ export function AppShell({
   onCloseTaskModal,
   onOpenAddTask,
   onCloseAddTask,
+  onOpenEditTask,
+  onCloseEditTask,
+  onOpenDeleteTask,
+  onCloseDeleteTask,
   onOpenAddBoard,
   onCloseAddBoard,
   onOpenEditBoard,
@@ -84,6 +103,8 @@ export function AppShell({
   onCreateBoard,
   onUpdateBoard,
   onCreateTask,
+  onUpdateTask,
+  onDeleteTask,
   onDeleteBoard,
   onToggleSubtask,
   onChangeTaskStatus,
@@ -168,17 +189,58 @@ export function AppShell({
           onClose={onCloseTaskModal}
           onToggleSubtask={onToggleSubtask}
           onChangeStatus={onChangeTaskStatus}
+          onEditTask={() => {
+            onCloseTaskModal();
+            onOpenEditTask();
+          }}
+          onDeleteTask={() => {
+            onCloseTaskModal();
+            onOpenDeleteTask();
+          }}
         />
       ) : null}
 
       {isAddTaskOpen ? (
         <AddEditTaskModal
+          title="Add New Task"
+          submitLabel="Create Task"
           statusOptions={activeBoard.columns.map((column) => ({
             value: column.id,
             label: column.name,
           }))}
           onClose={onCloseAddTask}
           onSubmit={onCreateTask}
+        />
+      ) : null}
+
+      {isEditTaskOpen && selectedTask ? (
+        <AddEditTaskModal
+          title="Edit Task"
+          submitLabel="Save Changes"
+          initialTask={{
+            title: selectedTask.title,
+            description: selectedTask.description,
+            statusColumnId: selectedTask.statusColumnId,
+            subtasks: selectedTask.subtasks.map((subtask) => ({
+              id: subtask.id,
+              name: subtask.title,
+            })),
+          }}
+          statusOptions={activeBoard.columns.map((column) => ({
+            value: column.id,
+            label: column.name,
+          }))}
+          onClose={onCloseEditTask}
+          onSubmit={onUpdateTask}
+        />
+      ) : null}
+
+      {isDeleteTaskOpen && selectedTask ? (
+        <DeleteModal
+          title="Delete this task?"
+          description={`Are you sure you want to delete the ‘${selectedTask.title}’ task and its subtasks? This action cannot be reversed.`}
+          onCancel={onCloseDeleteTask}
+          onConfirm={onDeleteTask}
         />
       ) : null}
 

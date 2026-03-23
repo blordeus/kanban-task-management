@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { TextField } from "../forms/text-field";
 import { TextareaField } from "../forms/textarea-field";
 import { SelectField } from "../forms/select-field";
+import iconCross from "../../assets/icons/icon-cross.svg";
 
 type SubtaskInput = {
   id: string;
@@ -16,25 +17,42 @@ type StatusOption = {
 };
 
 type Props = {
+  title: string;
+  submitLabel: string;
+  initialTask?: {
+    title: string;
+    description: string;
+    statusColumnId: string;
+    subtasks: SubtaskInput[];
+  };
   statusOptions: StatusOption[];
   onClose: () => void;
   onSubmit: (input: {
     title: string;
     description: string;
     statusColumnId: string;
-    subtasks: string[];
+    subtasks: SubtaskInput[];
   }) => void;
 };
 
 export function AddEditTaskModal({
+  title,
+  submitLabel,
+  initialTask,
   statusOptions,
   onClose,
   onSubmit,
 }: Props) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [statusColumnId, setStatusColumnId] = useState(statusOptions[0]?.value ?? "");
-  const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ id: "", name: "" }]);
+  const [taskTitle, setTaskTitle] = useState(initialTask?.title ?? "");
+  const [description, setDescription] = useState(initialTask?.description ?? "");
+  const [statusColumnId, setStatusColumnId] = useState(
+    initialTask?.statusColumnId ?? statusOptions[0]?.value ?? ""
+  );
+  const [subtasks, setSubtasks] = useState<SubtaskInput[]>(
+    initialTask?.subtasks.length
+      ? initialTask.subtasks
+      : [{ id: "", name: "" }]
+  );
   const [titleError, setTitleError] = useState("");
 
   const normalizedSubtasks = useMemo(
@@ -45,7 +63,7 @@ export function AddEditTaskModal({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!title.trim()) {
+    if (!taskTitle.trim()) {
       setTitleError("Can’t be empty");
       return;
     }
@@ -53,10 +71,10 @@ export function AddEditTaskModal({
     setTitleError("");
 
     onSubmit({
-      title,
+      title: taskTitle,
       description,
       statusColumnId: statusColumnId || statusOptions[0]?.value || "",
-      subtasks: normalizedSubtasks.map((item) => item.name),
+      subtasks: normalizedSubtasks,
     });
   }
 
@@ -66,13 +84,13 @@ export function AddEditTaskModal({
         onSubmit={handleSubmit}
         className="w-full max-w-[480px] rounded-lg bg-[var(--surface)] px-6 py-6 md:px-8 md:py-8"
       >
-        <h2 className="text-lg font-bold">Add New Task</h2>
+        <h2 className="text-lg font-bold">{title}</h2>
 
         <div className="mt-6 space-y-6">
           <TextField
             label="Title"
-            value={title}
-            onChange={setTitle}
+            value={taskTitle}
+            onChange={setTaskTitle}
             placeholder="e.g. Take coffee break"
             error={titleError}
           />
@@ -110,7 +128,7 @@ export function AddEditTaskModal({
                     aria-label={`Remove subtask ${index + 1}`}
                     className="rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
                   >
-                    ×
+                    <img src={iconCross} alt="" />
                   </button>
                 </div>
               ))}
@@ -118,7 +136,9 @@ export function AddEditTaskModal({
 
             <button
               type="button"
-              onClick={() => setSubtasks([...normalizedSubtasks, { id: "", name: "" }])}
+              onClick={() =>
+                setSubtasks([...normalizedSubtasks, { id: "", name: "" }])
+              }
               className="mt-3 w-full rounded-full bg-purple/10 py-2 text-[13px] font-bold text-purple hover:bg-purple/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
             >
               + Add New Subtask
@@ -133,7 +153,7 @@ export function AddEditTaskModal({
           />
 
           <Button className="w-full" type="submit">
-            Create Task
+            {submitLabel}
           </Button>
         </div>
       </form>
