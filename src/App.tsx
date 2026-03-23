@@ -1,11 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
+import type { DragEndEvent } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import { AppShell } from "./components/layout/app-shell";
 import { BoardView } from "./components/board/board-view";
 import { boardData } from "./data/boards";
-import type { Board, Column, Task, Subtask } from "./types/board";
+import type { Board, Column, Task } from "./types/board";
 import { makeId } from "./utils/make-id";
 import { STORAGE_KEYS } from "./utils/storage";
 import type { EditableColumnInput } from "./components/board/add-edit-board-modal";
+
+function findColumnByTaskId(board: Board, taskId: string) {
+  return board.columns.find((column) =>
+    column.tasks.some((task) => task.id === taskId),
+  );
+}
+
+function findColumnByOverId(board: Board, overId: string) {
+  return (
+    board.columns.find((column) => column.id === overId) ||
+    board.columns.find((column) =>
+      column.tasks.some((task) => task.id === overId),
+    )
+  );
+}
 
 function App() {
   const [boards, setBoards] = useState<Board[]>(() => {
@@ -406,6 +423,98 @@ function App() {
     );
   }
 
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (!activeBoard || !over || active.id === over.id) return;
+
+    const activeTaskId = String(active.id);
+    const overId = String(over.id);
+
+    const sourceColumn = findColumnByTaskId(activeBoard, activeTaskId);
+    const destinationColumn = findColumnByOverId(activeBoard, overId);
+
+    if (!sourceColumn || !destinationColumn) return;
+
+    if (sourceColumn.id === destinationColumn.id) {
+      const oldIndex = sourceColumn.tasks.findIndex(
+        (task) => task.id === activeTaskId,
+      );
+      const newIndex =
+        overId === destinationColumn.id
+          ? destinationColumn.tasks.length - 1
+          : destinationColumn.tasks.findIndex((task) => task.id === overId);
+
+      if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return;
+
+      setBoards((prev) =>
+        prev.map((board) => {
+          if (board.id !== activeBoard.id) return board;
+
+          return {
+            ...board,
+            columns: board.columns.map((column) =>
+              column.id === sourceColumn.id
+                ? {
+                    ...column,
+                    tasks: arrayMove(column.tasks, oldIndex, newIndex),
+                  }
+                : column,
+            ),
+          };
+        }),
+      );
+
+      return;
+    }
+
+    const movingTask = sourceColumn.tasks.find((task) => task.id === activeTaskId);
+    if (!movingTask) return;
+
+    const updatedTask: Task = {
+      ...movingTask,
+      statusColumnId: destinationColumn.id,
+    };
+
+    const destinationIndex =
+      overId === destinationColumn.id
+        ? destinationColumn.tasks.length
+        : destinationColumn.tasks.findIndex((task) => task.id === overId);
+
+    setBoards((prev) =>
+      prev.map((board) => {
+        if (board.id !== activeBoard.id) return board;
+
+        return {
+          ...board,
+          columns: board.columns.map((column) => {
+            if (column.id === sourceColumn.id) {
+              return {
+                ...column,
+                tasks: column.tasks.filter((task) => task.id !== activeTaskId),
+              };
+            }
+
+            if (column.id === destinationColumn.id) {
+              const nextTasks = [...column.tasks];
+              const insertIndex =
+                destinationIndex < 0 ? nextTasks.length : destinationIndex;
+
+              nextTasks.splice(insertIndex, 0, updatedTask);
+
+              return {
+                ...column,
+                tasks: nextTasks,
+              };
+            }
+
+            return column;
+          }),
+        };
+      }),
+    );
+  }
+
   function handleOpenNewColumn() {
     setIsEditBoardOpen(true);
   }
@@ -442,7 +551,6 @@ function App() {
       }}
       onHideSidebar={() => setIsSidebarOpen(false)}
       onShowSidebar={() => setIsSidebarOpen(true)}
-      onOpenTaskModal={handleOpenTaskModal}
       onCloseTaskModal={handleCloseTaskModal}
       onOpenAddTask={() => setIsAddTaskOpen(true)}
       onCloseAddTask={() => setIsAddTaskOpen(false)}
@@ -474,6 +582,7 @@ function App() {
         board={activeBoard}
         onTaskClick={handleOpenTaskModal}
         onOpenNewColumn={handleOpenNewColumn}
+        onDragEnd={handleDragEnd}
       />
     </AppShell>
   );

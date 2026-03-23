@@ -1,11 +1,32 @@
 import rawData from "./data.json";
-import type { Board, BoardData, Column, Task, Subtask } from "../types/board";
+import type { Board, Column, Task, Subtask } from "../types/board";
+
+type RawTask = {
+  title: string;
+  description: string;
+  status: string;
+  subtasks: { title: string; isCompleted: boolean }[];
+};
+
+type RawColumn = {
+  name: string;
+  tasks: RawTask[];
+};
+
+type RawBoard = {
+  name: string;
+  columns: RawColumn[];
+};
+
+type RawBoardData = {
+  boards: RawBoard[];
+};
 
 function makeId(prefix: string, value: string, index: number) {
   return `${prefix}-${value.toLowerCase().replace(/\s+/g, "-")}-${index}`;
 }
 
-const normalizedBoards: Board[] = (rawData as BoardData).boards.map(
+const normalizedBoards: Board[] = (rawData as RawBoardData).boards.map(
   (board, boardIndex) => {
     const columns: Column[] = board.columns.map((column, columnIndex) => ({
       id: makeId("column", `${board.name}-${column.name}`, columnIndex),
