@@ -54,7 +54,7 @@ export function Sidebar({
                       "flex h-12 w-full items-center gap-4 rounded-r-full px-8 text-left text-[15px] font-bold transition-colors",
                       isActive
                         ? "bg-purple text-white"
-                        : "text-medium-grey hover:bg-purple/10 hover:text-purple"
+                        : "text-medium-grey hover:bg-purple/10 hover:text-purple",
                     )}
                   >
                     <img

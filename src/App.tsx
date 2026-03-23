@@ -3,12 +3,29 @@ import { AppShell } from "./components/layout/app-shell";
 import { BoardView } from "./components/board/board-view";
 import { boardData } from "./data/boards";
 import type { Board, Column, Task, Subtask } from "./types/board";
-import type { EditableColumnInput } from "./components/board/add-edit-board-modal";
 import { makeId } from "./utils/make-id";
+import { STORAGE_KEYS } from "./utils/storage";
+import type { EditableColumnInput } from "./components/board/add-edit-board-modal";
 
 function App() {
-  const [boards, setBoards] = useState<Board[]>(boardData.boards);
-  const [activeBoardIndex, setActiveBoardIndex] = useState(0);
+  const [boards, setBoards] = useState<Board[]>(() => {
+    const savedBoards = localStorage.getItem(STORAGE_KEYS.boards);
+
+    if (!savedBoards) {
+      return boardData.boards;
+    }
+
+    try {
+      return JSON.parse(savedBoards) as Board[];
+    } catch {
+      return boardData.boards;
+    }
+  });
+
+  const [activeBoardId, setActiveBoardId] = useState<string | null>(() => {
+    return localStorage.getItem(STORAGE_KEYS.activeBoardId);
+  });
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -17,14 +34,26 @@ function App() {
   const [isEditBoardOpen, setIsEditBoardOpen] = useState(false);
   const [isDeleteBoardOpen, setIsDeleteBoardOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
-    const savedTheme = localStorage.getItem("kanban-theme");
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.theme);
     return savedTheme === "dark" ? "dark" : "light";
   });
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("kanban-theme", theme);
+    localStorage.setItem(STORAGE_KEYS.theme, theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.boards, JSON.stringify(boards));
+  }, [boards]);
+
+  useEffect(() => {
+    if (activeBoardId) {
+      localStorage.setItem(STORAGE_KEYS.activeBoardId, activeBoardId);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.activeBoardId);
+    }
+  }, [activeBoardId]);
 
   useEffect(() => {
     const syncLayout = () => {
@@ -40,10 +69,28 @@ function App() {
     return () => window.removeEventListener("resize", syncLayout);
   }, []);
 
+  const activeBoardIndex = useMemo(() => {
+    if (!boards.length) return 0;
+
+    const foundIndex = boards.findIndex((board) => board.id === activeBoardId);
+    return foundIndex >= 0 ? foundIndex : 0;
+  }, [boards, activeBoardId]);
+
   const activeBoard = useMemo(
     () => boards[activeBoardIndex] ?? boards[0],
-    [boards, activeBoardIndex],
+    [boards, activeBoardIndex]
   );
+
+  useEffect(() => {
+    if (!boards.length) {
+      setActiveBoardId(null);
+      return;
+    }
+
+    if (!activeBoardId || !boards.some((board) => board.id === activeBoardId)) {
+      setActiveBoardId(boards[0].id);
+    }
+  }, [boards, activeBoardId]);
 
   function handleAddBoard(name: string, columnInputs: EditableColumnInput[]) {
     const cleanedColumns: Column[] = columnInputs
@@ -61,19 +108,12 @@ function App() {
       columns: cleanedColumns,
     };
 
-    setBoards((prev) => {
-      const next = [...prev, newBoard];
-      setActiveBoardIndex(next.length - 1);
-      return next;
-    });
-
+    setBoards((prev) => [...prev, newBoard]);
+    setActiveBoardId(newBoard.id);
     setIsAddBoardOpen(false);
   }
 
-  function handleEditBoard(
-    name: string,
-    nextColumnInputs: EditableColumnInput[],
-  ) {
+  function handleEditBoard(name: string, nextColumnInputs: EditableColumnInput[]) {
     if (!activeBoard) return;
 
     const trimmedName = name.trim();
@@ -85,9 +125,7 @@ function App() {
       }))
       .filter((input) => input.name)
       .map((input) => {
-        const existing = activeBoard.columns.find(
-          (column) => column.id === input.id,
-        );
+        const existing = activeBoard.columns.find((column) => column.id === input.id);
 
         if (existing) {
           return {
@@ -104,15 +142,15 @@ function App() {
       });
 
     setBoards((prev) =>
-      prev.map((board, index) =>
-        index === activeBoardIndex
+      prev.map((board) =>
+        board.id === activeBoard.id
           ? {
               ...board,
               name: trimmedName,
               columns: nextColumns,
             }
-          : board,
-      ),
+          : board
+      )
     );
 
     setSelectedTask(null);
@@ -120,14 +158,9 @@ function App() {
   }
 
   function handleDeleteBoard() {
-    setBoards((prev) => {
-      const next = prev.filter((_, index) => index !== activeBoardIndex);
-      const nextIndex =
-        next.length === 0 ? 0 : Math.min(activeBoardIndex, next.length - 1);
-      setActiveBoardIndex(nextIndex);
-      return next;
-    });
+    if (!activeBoard) return;
 
+    setBoards((prev) => prev.filter((board) => board.id !== activeBoard.id));
     setSelectedTask(null);
     setIsDeleteBoardOpen(false);
   }
@@ -156,27 +189,29 @@ function App() {
     };
 
     setBoards((prev) =>
-      prev.map((board, boardIndex) => {
-        if (boardIndex !== activeBoardIndex) return board;
+      prev.map((board) => {
+        if (board.id !== activeBoard.id) return board;
 
         return {
           ...board,
           columns: board.columns.map((column) =>
             column.id === input.statusColumnId
               ? { ...column, tasks: [...column.tasks, newTask] }
-              : column,
+              : column
           ),
         };
-      }),
+      })
     );
 
     setIsAddTaskOpen(false);
   }
 
   function handleToggleSubtask(taskId: string, subtaskId: string) {
+    if (!activeBoard) return;
+
     setBoards((prev) =>
-      prev.map((board, boardIndex) => {
-        if (boardIndex !== activeBoardIndex) return board;
+      prev.map((board) => {
+        if (board.id !== activeBoard.id) return board;
 
         return {
           ...board,
@@ -190,13 +225,13 @@ function App() {
                 subtasks: task.subtasks.map((subtask) =>
                   subtask.id === subtaskId
                     ? { ...subtask, isCompleted: !subtask.isCompleted }
-                    : subtask,
+                    : subtask
                 ),
               };
             }),
           })),
         };
-      }),
+      })
     );
 
     setSelectedTask((prev) => {
@@ -207,7 +242,7 @@ function App() {
         subtasks: prev.subtasks.map((subtask) =>
           subtask.id === subtaskId
             ? { ...subtask, isCompleted: !subtask.isCompleted }
-            : subtask,
+            : subtask
         ),
       };
     });
@@ -219,8 +254,8 @@ function App() {
     let updatedTask: Task | null = null;
 
     setBoards((prev) =>
-      prev.map((board, boardIndex) => {
-        if (boardIndex !== activeBoardIndex) return board;
+      prev.map((board) => {
+        if (board.id !== activeBoard.id) return board;
 
         const columnsWithoutTask = board.columns.map((column) => ({
           ...column,
@@ -243,10 +278,10 @@ function App() {
           columns: columnsWithoutTask.map((column) =>
             column.id === nextColumnId
               ? { ...column, tasks: [...column.tasks, updatedTask as Task] }
-              : column,
+              : column
           ),
         };
-      }),
+      })
     );
 
     if (updatedTask) {
@@ -276,7 +311,10 @@ function App() {
       onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
       onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
       onBoardChange={(index) => {
-        setActiveBoardIndex(index);
+        const nextBoard = boards[index];
+        if (nextBoard) {
+          setActiveBoardId(nextBoard.id);
+        }
         setIsMobileMenuOpen(false);
         setSelectedTask(null);
       }}
