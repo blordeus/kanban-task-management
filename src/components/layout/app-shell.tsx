@@ -51,7 +51,7 @@ export function AppShell({
   }, [isMobileMenuOpen, onCloseMobileMenu]);
 
   return (
-    <div className="min-h-screen bg-light-grey text-black dark:bg-very-dark-grey dark:text-white">
+    <div className="min-h-screen bg-[var(--app-bg)] text-[var(--text-primary)]">
       <div className="flex min-h-screen">
         {isSidebarOpen && (
           <Sidebar
@@ -64,14 +64,16 @@ export function AppShell({
           />
         )}
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col bg-[var(--app-bg)]">
           <AppHeader
             boardName={activeBoardName}
             isSidebarOpen={isSidebarOpen}
             isMobileMenuOpen={isMobileMenuOpen}
             onToggleMobileMenu={onToggleMobileMenu}
           />
-          <main className="min-w-0 flex-1 overflow-hidden">{children}</main>
+          <main className="min-w-0 flex-1 overflow-hidden bg-[var(--app-bg)]">
+            {children}
+          </main>
         </div>
       </div>
 

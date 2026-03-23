@@ -24,7 +24,7 @@ export function Sidebar({
   onToggleTheme,
 }: SidebarProps) {
   return (
-    <aside className="hidden h-screen w-[300px] shrink-0 flex-col border-r border-lines-light bg-white dark:border-lines-dark dark:bg-dark-grey lg:flex">
+    <aside className="hidden h-screen w-[300px] shrink-0 flex-col border-r border-[var(--border-color)] bg-[var(--surface)] lg:flex xl:w-[300px]">
       <div className="px-8 pb-[54px] pt-8">
         {theme === "light" ? (
           <img src={logoDark} alt="Kanban" />

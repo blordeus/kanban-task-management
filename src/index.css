@@ -14,7 +14,31 @@
   --color-red: #ea5555;
   --color-red-hover: #ff9898;
 
-  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --app-bg: #f4f7fd;
+  --surface: #ffffff;
+  --surface-secondary: #f4f7fd;
+  --text-primary: #000112;
+  --text-secondary: #828fa3;
+  --border-color: #e4ebfa;
+  --new-column-bg: linear-gradient(
+    180deg,
+    #e9effa 0%,
+    rgba(233, 239, 250, 0.5) 100%
+  );
+}
+
+html[data-theme="dark"] {
+  --app-bg: #20212c;
+  --surface: #2b2c37;
+  --surface-secondary: #20212c;
+  --text-primary: #ffffff;
+  --text-secondary: #828fa3;
+  --border-color: #3e3f4e;
+  --new-column-bg: linear-gradient(
+    180deg,
+    rgba(43, 44, 55, 0.25) 0%,
+    rgba(43, 44, 55, 0.125) 100%
+  );
 }
 
 @theme {
@@ -35,28 +59,19 @@
 }
 
 html {
-  font-family: var(--font-sans);
-  background: var(--color-light-grey);
-}
-
-html[data-theme="dark"] {
-  background: var(--color-very-dark-grey);
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  background: var(--app-bg);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--color-light-grey);
-  color: var(--color-black);
-  font-family: var(--font-sans);
+  background: var(--app-bg);
+  color: var(--text-primary);
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-html[data-theme="dark"] body {
-  background: var(--color-very-dark-grey);
-  color: var(--color-white);
 }
 
 html,

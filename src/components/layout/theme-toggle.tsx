@@ -10,7 +10,7 @@ export function ThemeToggle({ theme, onToggleTheme }: ThemeToggleProps) {
   const isDark = theme === "dark";
 
   return (
-    <div className="rounded-md bg-light-grey px-6 py-4 dark:bg-very-dark-grey">
+    <div className="rounded-md bg-[var(--surface-secondary)] px-6 py-[14px]">
       <div className="flex items-center justify-center gap-6">
         <img src={iconLightTheme} alt="" />
         <button

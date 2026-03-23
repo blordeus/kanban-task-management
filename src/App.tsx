@@ -7,11 +7,14 @@ function App() {
   const [activeBoardIndex, setActiveBoardIndex] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const savedTheme = localStorage.getItem("kanban-theme");
+    return savedTheme === "dark" ? "dark" : "light";
+  });
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.setAttribute("data-theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("kanban-theme", theme);
   }, [theme]);
 
   useEffect(() => {

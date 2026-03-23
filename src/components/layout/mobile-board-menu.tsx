@@ -1,5 +1,4 @@
 import iconBoard from "../../assets/icons/icon-board.svg";
-import iconChevronUp from "../../assets/icons/icon-chevron-up.svg";
 import { ThemeToggle } from "./theme-toggle";
 import type { Board } from "../../types/board";
 import { cn } from "../../utils/cn";
@@ -28,7 +27,7 @@ export function MobileBoardMenu({
   return (
     <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose}>
       <div
-        className="mx-4 mt-20 max-h-[calc(100vh-112px)] overflow-y-auto rounded-lg bg-white py-4 shadow-[0_10px_20px_rgba(54,78,126,0.25)] dark:bg-dark-grey md:mx-auto md:mt-24 md:w-[264px]"
+        className="mx-4 mt-20 max-h-[calc(100vh-96px)] overflow-y-auto rounded-lg bg-[var(--surface)] py-4 shadow-[0_10px_20px_rgba(54,78,126,0.25)] md:mx-auto md:mt-24 md:w-[264px]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="px-6 text-xs font-bold uppercase tracking-[2.4px] text-medium-grey">

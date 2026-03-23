@@ -20,8 +20,8 @@ export function BoardView({ board }: BoardViewProps) {
   }
 
   return (
-    <div className="h-full overflow-x-auto overflow-y-hidden px-4 pb-6 pt-6 md:px-6 md:pb-8 lg:px-6">
-      <div className="flex h-full min-w-max gap-4 md:gap-6">
+    <div className="h-full overflow-x-auto overflow-y-hidden px-4 pb-6 pt-6 md:px-6 md:pb-8 lg:px-6 lg:pt-6">
+      <div className="flex h-full min-w-max gap-6">
         {board.columns.map((column, index) => (
           <Column
             key={column.name}
@@ -32,7 +32,7 @@ export function BoardView({ board }: BoardViewProps) {
 
         <button
           type="button"
-          className="mt-10 flex h-[calc(100%-40px)] min-h-[700px] w-[280px] shrink-0 items-center justify-center rounded-md bg-[#e9effa] text-2xl font-bold text-medium-grey transition hover:text-purple dark:bg-gradient-to-b dark:from-white/10 dark:to-white/5"
+          className="mt-10 flex h-[calc(100%-40px)] min-h-[700px] w-[280px] shrink-0 items-center justify-center rounded-md bg-[image:var(--new-column-bg)] text-2xl font-bold text-medium-grey transition hover:text-purple"
         >
           + New Column
         </button>
