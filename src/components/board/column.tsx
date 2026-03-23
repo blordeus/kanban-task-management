@@ -1,0 +1,26 @@
+import type { Column as ColumnType } from "../../types/board";
+import { TaskCard } from "./task-card";
+
+type ColumnProps = {
+  column: ColumnType;
+  colorClass: string;
+};
+
+export function Column({ column, colorClass }: ColumnProps) {
+  return (
+    <section className="w-[280px] shrink-0">
+      <div className="mb-6 flex items-center gap-3">
+        <span className={`h-4 w-4 rounded-full ${colorClass}`} />
+        <h2 className="text-xs font-bold uppercase tracking-[2.4px] text-medium-grey">
+          {column.name} ({column.tasks.length})
+        </h2>
+      </div>
+
+      <div className="space-y-5">
+        {column.tasks.map((task) => (
+          <TaskCard key={task.title} task={task} />
+        ))}
+      </div>
+    </section>
+  );
+}
