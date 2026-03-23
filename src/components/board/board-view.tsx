@@ -20,8 +20,8 @@ export function BoardView({ board }: BoardViewProps) {
   }
 
   return (
-    <div className="h-full overflow-x-auto overflow-y-hidden px-4 pb-6 pt-6 md:px-6 md:pb-8 md:pt-6 lg:px-6 lg:pb-8 lg:pt-6">
-      <div className="flex h-full min-w-max gap-6">
+    <div className="h-full overflow-x-auto overflow-y-hidden px-4 pb-6 pt-6 md:px-6 md:pb-8 lg:px-6">
+      <div className="flex h-full min-w-max gap-4 md:gap-6">
         {board.columns.map((column, index) => (
           <Column
             key={column.name}

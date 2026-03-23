@@ -11,7 +11,7 @@ export function TaskCard({ task }: TaskCardProps) {
   return (
     <button
       type="button"
-      className="w-full rounded-lg bg-white px-4 py-6 text-left shadow-[0_4px_6px_rgba(54,78,126,0.101545)] transition hover:text-purple dark:bg-dark-grey"
+      className="w-full rounded-lg bg-white px-4 py-[23px] text-left shadow-[0_4px_6px_rgba(54,78,126,0.101545)] transition hover:text-purple dark:bg-dark-grey"
     >
       <h3 className="text-[18px] font-bold leading-[23px] text-black dark:text-white">
         {task.title}

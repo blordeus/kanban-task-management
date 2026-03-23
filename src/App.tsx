@@ -5,7 +5,8 @@ import { boardData } from "./data/boards";
 
 function App() {
   const [activeBoardIndex, setActiveBoardIndex] = useState(0);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
@@ -14,14 +15,17 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    const onResize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsSidebarOpen(true);
+    const syncLayout = () => {
+      const isDesktop = window.innerWidth >= 1024;
+      setIsSidebarOpen(isDesktop);
+      if (isDesktop) {
+        setIsMobileMenuOpen(false);
       }
     };
 
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    syncLayout();
+    window.addEventListener("resize", syncLayout);
+    return () => window.removeEventListener("resize", syncLayout);
   }, []);
 
   const activeBoard = useMemo(
@@ -35,7 +39,13 @@ function App() {
       activeBoardIndex={activeBoardIndex}
       activeBoardName={activeBoard.name}
       isSidebarOpen={isSidebarOpen}
-      onBoardChange={setActiveBoardIndex}
+      isMobileMenuOpen={isMobileMenuOpen}
+      onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
+      onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
+      onBoardChange={(index) => {
+        setActiveBoardIndex(index);
+        setIsMobileMenuOpen(false);
+      }}
       onHideSidebar={() => setIsSidebarOpen(false)}
       onShowSidebar={() => setIsSidebarOpen(true)}
       theme={theme}
