@@ -22,7 +22,7 @@ export function BoardView({
   onOpenNewColumn,
 }: BoardViewProps) {
   if (board.columns.length === 0) {
-    return <EmptyBoard />;
+    return <EmptyBoard onOpenNewColumn={onOpenNewColumn} />;
   }
 
   return (
@@ -30,7 +30,7 @@ export function BoardView({
       <div className="flex h-full min-w-max gap-6">
         {board.columns.map((column, index) => (
           <Column
-            key={column.name}
+            key={column.id}
             column={column}
             colorClass={dotColors[index % dotColors.length]}
             onTaskClick={onTaskClick}
@@ -40,7 +40,7 @@ export function BoardView({
         <button
           type="button"
           onClick={onOpenNewColumn}
-          className="mt-10 flex h-[calc(100%-40px)] min-h-[700px] w-[280px] shrink-0 items-center justify-center rounded-md bg-[image:var(--new-column-bg)] text-2xl font-bold text-medium-grey transition hover:text-purple"
+          className="mt-10 flex h-[calc(100%-40px)] min-h-[700px] w-[280px] shrink-0 items-center justify-center rounded-md bg-[image:var(--new-column-bg)] text-2xl font-bold text-medium-grey transition hover:text-purple focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
         >
           + New Column
         </button>

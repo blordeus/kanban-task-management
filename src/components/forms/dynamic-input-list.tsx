@@ -39,11 +39,17 @@ export function DynamicInputList({
             <input
               value={value}
               onChange={(e) => update(index, e.target.value)}
+              aria-label={`${label} ${index + 1}`}
               className="flex-1 rounded border border-[var(--border-color)] bg-[var(--surface)] px-4 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-purple"
             />
 
-            <button type="button" onClick={() => remove(index)}>
-              <img src={iconCross} alt="Remove" />
+            <button
+              type="button"
+              onClick={() => remove(index)}
+              aria-label={`Remove ${label.toLowerCase()} ${index + 1}`}
+              className="rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
+            >
+              <img src={iconCross} alt="" />
             </button>
           </div>
         ))}
@@ -52,7 +58,7 @@ export function DynamicInputList({
       <button
         type="button"
         onClick={add}
-        className="mt-3 w-full rounded-full bg-purple/10 py-2 text-[13px] font-bold text-purple hover:bg-purple/20"
+        className="mt-3 w-full rounded-full bg-purple/10 py-2 text-[13px] font-bold text-purple hover:bg-purple/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
       >
         {addLabel}
       </button>

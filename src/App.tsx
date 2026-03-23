@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "./components/layout/app-shell";
 import { BoardView } from "./components/board/board-view";
 import { boardData } from "./data/boards";
-import type { Board, Task } from "./types/board";
+import type { Board, Column, Task, Subtask } from "./types/board";
+import { makeId } from "./utils/make-id";
 
 function App() {
   const [boards, setBoards] = useState<Board[]>(boardData.boards);
@@ -44,53 +45,65 @@ function App() {
   );
 
   function handleAddBoard(name: string, columnNames: string[]) {
-    const cleanedColumns = columnNames
+    const cleanedColumns: Column[] = columnNames
       .map((column) => column.trim())
       .filter(Boolean)
-      .map((name) => ({ name, tasks: [] }));
+      .map((columnName) => ({
+        id: makeId("column"),
+        name: columnName,
+        tasks: [],
+      }));
 
     const newBoard: Board = {
+      id: makeId("board"),
       name: name.trim(),
       columns: cleanedColumns,
     };
 
-    setBoards((prev) => [...prev, newBoard]);
-    setActiveBoardIndex(boards.length);
+    setBoards((prev) => {
+      const next = [...prev, newBoard];
+      setActiveBoardIndex(next.length - 1);
+      return next;
+    });
+
     setIsAddBoardOpen(false);
   }
 
-  function handleEditBoard(name: string, columnNames: string[]) {
+  function handleEditBoard(name: string, nextColumnInputs: string[]) {
     if (!activeBoard) return;
 
-    const nextColumns = columnNames
-      .map((columnName) => columnName.trim())
-      .filter(Boolean)
-      .map((columnName) => {
-        const existing = activeBoard.columns.find(
-          (column) => column.name === columnName
-        );
+    const trimmedName = name.trim();
+    const cleanedColumnNames = nextColumnInputs.map((item) => item.trim()).filter(Boolean);
 
-        return existing ?? { name: columnName, tasks: [] };
-      });
+    const nextColumns: Column[] = cleanedColumnNames.map((columnName) => {
+      const existing = activeBoard.columns.find((column) => column.name === columnName);
+      return existing ?? { id: makeId("column"), name: columnName, tasks: [] };
+    });
 
     setBoards((prev) =>
       prev.map((board, index) =>
         index === activeBoardIndex
           ? {
               ...board,
-              name: name.trim(),
+              name: trimmedName,
               columns: nextColumns,
             }
           : board
       )
     );
 
+    setSelectedTask(null);
     setIsEditBoardOpen(false);
   }
 
   function handleDeleteBoard() {
-    setBoards((prev) => prev.filter((_, index) => index !== activeBoardIndex));
-    setActiveBoardIndex(0);
+    setBoards((prev) => {
+      const next = prev.filter((_, index) => index !== activeBoardIndex);
+      const nextIndex = next.length === 0 ? 0 : Math.min(activeBoardIndex, next.length - 1);
+      setActiveBoardIndex(nextIndex);
+      return next;
+    });
+
     setSelectedTask(null);
     setIsDeleteBoardOpen(false);
   }
@@ -104,13 +117,15 @@ function App() {
     if (!activeBoard) return;
 
     const newTask: Task = {
+      id: makeId("task"),
       title: input.title.trim(),
       description: input.description.trim(),
       status: input.status,
       subtasks: input.subtasks
         .map((title) => title.trim())
         .filter(Boolean)
-        .map((title) => ({
+        .map<Subtask>((title) => ({
+          id: makeId("subtask"),
           title,
           isCompleted: false,
         })),
@@ -134,13 +149,93 @@ function App() {
     setIsAddTaskOpen(false);
   }
 
+  function handleToggleSubtask(taskId: string, subtaskId: string) {
+    setBoards((prev) =>
+      prev.map((board, boardIndex) => {
+        if (boardIndex !== activeBoardIndex) return board;
+
+        return {
+          ...board,
+          columns: board.columns.map((column) => ({
+            ...column,
+            tasks: column.tasks.map((task) => {
+              if (task.id !== taskId) return task;
+
+              return {
+                ...task,
+                subtasks: task.subtasks.map((subtask) =>
+                  subtask.id === subtaskId
+                    ? { ...subtask, isCompleted: !subtask.isCompleted }
+                    : subtask
+                ),
+              };
+            }),
+          })),
+        };
+      })
+    );
+
+    setSelectedTask((prev) => {
+      if (!prev || prev.id !== taskId) return prev;
+
+      return {
+        ...prev,
+        subtasks: prev.subtasks.map((subtask) =>
+          subtask.id === subtaskId
+            ? { ...subtask, isCompleted: !subtask.isCompleted }
+            : subtask
+        ),
+      };
+    });
+  }
+
+  function handleChangeTaskStatus(taskId: string, nextStatus: string) {
+    if (!activeBoard) return;
+
+    let updatedTask: Task | null = null;
+
+    setBoards((prev) =>
+      prev.map((board, boardIndex) => {
+        if (boardIndex !== activeBoardIndex) return board;
+
+        const extractedTasks: Task[] = [];
+
+        const columnsWithoutTask = board.columns.map((column) => ({
+          ...column,
+          tasks: column.tasks.filter((task) => {
+            if (task.id === taskId) {
+              extractedTasks.push({ ...task, status: nextStatus });
+              return false;
+            }
+            return true;
+          }),
+        }));
+
+        updatedTask = extractedTasks[0] ?? null;
+
+        if (!updatedTask) return board;
+
+        return {
+          ...board,
+          columns: columnsWithoutTask.map((column) =>
+            column.name === nextStatus
+              ? { ...column, tasks: [...column.tasks, updatedTask as Task] }
+              : column
+          ),
+        };
+      })
+    );
+
+    if (updatedTask) {
+      setSelectedTask(updatedTask);
+    }
+  }
+
   function handleOpenNewColumn() {
     setIsEditBoardOpen(true);
   }
 
-  if (!activeBoard) {
-    return null;
-  }
+  if (!activeBoard) return null;
 
   return (
     <AppShell
@@ -179,12 +274,18 @@ function App() {
       onCreateTask={handleAddTask}
       onDeleteBoard={handleDeleteBoard}
       onOpenNewColumn={handleOpenNewColumn}
+      onToggleSubtask={handleToggleSubtask}
+      onChangeTaskStatus={handleChangeTaskStatus}
       theme={theme}
       onToggleTheme={() =>
         setTheme((prev) => (prev === "light" ? "dark" : "light"))
       }
     >
-      <BoardView board={activeBoard} onTaskClick={setSelectedTask} onOpenNewColumn={handleOpenNewColumn} />
+      <BoardView
+        board={activeBoard}
+        onTaskClick={setSelectedTask}
+        onOpenNewColumn={handleOpenNewColumn}
+      />
     </AppShell>
   );
 }

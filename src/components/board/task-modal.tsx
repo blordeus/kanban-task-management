@@ -4,10 +4,19 @@ import ellipsis from "../../assets/icons/icon-vertical-ellipsis.svg";
 
 type TaskModalProps = {
   task: Task;
+  statusOptions: string[];
   onClose: () => void;
+  onToggleSubtask: (taskId: string, subtaskId: string) => void;
+  onChangeStatus: (taskId: string, status: string) => void;
 };
 
-export function TaskModal({ task, onClose }: TaskModalProps) {
+export function TaskModal({
+  task,
+  statusOptions,
+  onClose,
+  onToggleSubtask,
+  onChangeStatus,
+}: TaskModalProps) {
   const completedCount = task.subtasks.filter(
     (subtask) => subtask.isCompleted
   ).length;
@@ -23,7 +32,7 @@ export function TaskModal({ task, onClose }: TaskModalProps) {
           <button
             type="button"
             aria-label="Open task actions"
-            className="shrink-0 text-medium-grey transition hover:opacity-70"
+            className="shrink-0 text-medium-grey transition hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
           >
             <img src={ellipsis} alt="" />
           </button>
@@ -43,13 +52,13 @@ export function TaskModal({ task, onClose }: TaskModalProps) {
           <div className="mt-4 space-y-2">
             {task.subtasks.map((subtask) => (
               <label
-                key={subtask.title}
+                key={subtask.id}
                 className="flex cursor-pointer items-center gap-4 rounded-md bg-[var(--surface-secondary)] px-3 py-3 transition hover:bg-purple/10"
               >
                 <input
                   type="checkbox"
                   checked={subtask.isCompleted}
-                  readOnly
+                  onChange={() => onToggleSubtask(task.id, subtask.id)}
                   className="h-4 w-4 rounded border border-[var(--border-color)] accent-purple"
                 />
                 <span
@@ -74,9 +83,18 @@ export function TaskModal({ task, onClose }: TaskModalProps) {
             Current Status
           </label>
 
-          <div className="rounded border border-[var(--border-color)] bg-[var(--surface)] px-4 py-3 text-[13px] font-medium text-[var(--text-primary)]">
-            {task.status}
-          </div>
+          <select
+            id="task-status"
+            value={task.status}
+            onChange={(e) => onChangeStatus(task.id, e.target.value)}
+            className="w-full rounded border border-[var(--border-color)] bg-[var(--surface)] px-4 py-3 text-[13px] font-medium text-[var(--text-primary)] outline-none focus:border-purple"
+          >
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
     </ModalBackdrop>

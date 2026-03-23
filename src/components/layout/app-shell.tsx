@@ -47,6 +47,8 @@ type AppShellProps = {
   }) => void;
   onDeleteBoard: () => void;
   onOpenNewColumn: () => void;
+  onToggleSubtask: (taskId: string, subtaskId: string) => void;
+  onChangeTaskStatus: (taskId: string, status: string) => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
   children: ReactNode;
@@ -82,6 +84,8 @@ export function AppShell({
   onUpdateBoard,
   onCreateTask,
   onDeleteBoard,
+  onToggleSubtask,
+  onChangeTaskStatus,
   theme,
   onToggleTheme,
   children,
@@ -126,6 +130,7 @@ export function AppShell({
             isSidebarOpen={isSidebarOpen}
             isMobileMenuOpen={isMobileMenuOpen}
             isBoardMenuOpen={isBoardMenuOpen}
+            canAddTask={activeBoard.columns.length > 0}
             onToggleMobileMenu={onToggleMobileMenu}
             onToggleBoardMenu={() => setIsBoardMenuOpen((prev) => !prev)}
             onCloseBoardMenu={() => setIsBoardMenuOpen(false)}
@@ -153,7 +158,13 @@ export function AppShell({
       />
 
       {selectedTask ? (
-        <TaskModal task={selectedTask} onClose={onCloseTaskModal} />
+        <TaskModal
+          task={selectedTask}
+          statusOptions={activeBoard.columns.map((column) => column.name)}
+          onClose={onCloseTaskModal}
+          onToggleSubtask={onToggleSubtask}
+          onChangeStatus={onChangeTaskStatus}
+        />
       ) : null}
 
       {isAddTaskOpen ? (

@@ -11,6 +11,7 @@ type AppHeaderProps = {
   isSidebarOpen: boolean;
   isMobileMenuOpen: boolean;
   isBoardMenuOpen: boolean;
+  canAddTask: boolean;
   onToggleMobileMenu: () => void;
   onToggleBoardMenu: () => void;
   onCloseBoardMenu: () => void;
@@ -24,6 +25,7 @@ export function AppHeader({
   isSidebarOpen,
   isMobileMenuOpen,
   isBoardMenuOpen,
+  canAddTask,
   onToggleMobileMenu,
   onToggleBoardMenu,
   onCloseBoardMenu,
@@ -62,7 +64,11 @@ export function AppHeader({
       </div>
 
       <div className="ml-4 flex shrink-0 items-center gap-4">
-        <Button className="hidden md:inline-flex md:px-6" onClick={onOpenAddTask}>
+        <Button
+          className="hidden md:inline-flex md:px-6"
+          onClick={onOpenAddTask}
+          disabled={!canAddTask}
+        >
           + Add New Task
         </Button>
 
@@ -71,6 +77,7 @@ export function AppHeader({
           className="md:hidden"
           aria-label="Add new task"
           onClick={onOpenAddTask}
+          disabled={!canAddTask}
         >
           <img src={addTaskMobile} alt="" />
         </Button>
@@ -79,7 +86,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={onToggleBoardMenu}
-            className="shrink-0 text-medium-grey transition hover:opacity-70"
+            className="shrink-0 text-medium-grey transition hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
             aria-label="Open board actions"
             aria-expanded={isBoardMenuOpen}
           >
