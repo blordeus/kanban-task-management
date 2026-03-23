@@ -15,6 +15,8 @@ type AppHeaderProps = {
   onToggleBoardMenu: () => void;
   onCloseBoardMenu: () => void;
   onOpenAddTask: () => void;
+  onOpenEditBoard: () => void;
+  onOpenDeleteBoard: () => void;
 };
 
 export function AppHeader({
@@ -26,6 +28,8 @@ export function AppHeader({
   onToggleBoardMenu,
   onCloseBoardMenu,
   onOpenAddTask,
+  onOpenEditBoard,
+  onOpenDeleteBoard,
 }: AppHeaderProps) {
   return (
     <header className="relative z-30 flex h-16 items-center justify-between border-b border-[var(--border-color)] bg-[var(--surface)] px-4 md:h-20 md:px-6 lg:h-24 lg:px-8">
@@ -58,9 +62,16 @@ export function AppHeader({
       </div>
 
       <div className="ml-4 flex shrink-0 items-center gap-4">
-        <Button onClick={onOpenAddTask}>+ Add New Task</Button>
+        <Button className="hidden md:inline-flex md:px-6" onClick={onOpenAddTask}>
+          + Add New Task
+        </Button>
 
-        <Button size="icon" className="md:hidden" aria-label="Add new task">
+        <Button
+          size="icon"
+          className="md:hidden"
+          aria-label="Add new task"
+          onClick={onOpenAddTask}
+        >
           <img src={addTaskMobile} alt="" />
         </Button>
 
@@ -78,6 +89,8 @@ export function AppHeader({
           <BoardActionsMenu
             isOpen={isBoardMenuOpen}
             onClose={onCloseBoardMenu}
+            onEditBoard={onOpenEditBoard}
+            onDeleteBoard={onOpenDeleteBoard}
           />
         </div>
       </div>

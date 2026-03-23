@@ -18,6 +18,10 @@ type AppShellProps = {
   isSidebarOpen: boolean;
   isMobileMenuOpen: boolean;
   selectedTask: Task | null;
+  isAddTaskOpen: boolean;
+  isAddBoardOpen: boolean;
+  isEditBoardOpen: boolean;
+  isDeleteBoardOpen: boolean;
   onToggleMobileMenu: () => void;
   onCloseMobileMenu: () => void;
   onBoardChange: (index: number) => void;
@@ -25,6 +29,24 @@ type AppShellProps = {
   onShowSidebar: () => void;
   onSelectTask: (task: Task | null) => void;
   onCloseTaskModal: () => void;
+  onOpenAddTask: () => void;
+  onCloseAddTask: () => void;
+  onOpenAddBoard: () => void;
+  onCloseAddBoard: () => void;
+  onOpenEditBoard: () => void;
+  onCloseEditBoard: () => void;
+  onOpenDeleteBoard: () => void;
+  onCloseDeleteBoard: () => void;
+  onCreateBoard: (name: string, columns: string[]) => void;
+  onUpdateBoard: (name: string, columns: string[]) => void;
+  onCreateTask: (input: {
+    title: string;
+    description: string;
+    status: string;
+    subtasks: string[];
+  }) => void;
+  onDeleteBoard: () => void;
+  onOpenNewColumn: () => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
   children: ReactNode;
@@ -34,28 +56,37 @@ export function AppShell({
   boards,
   activeBoardIndex,
   activeBoardName,
+  activeBoard,
   isSidebarOpen,
   isMobileMenuOpen,
   selectedTask,
+  isAddTaskOpen,
+  isAddBoardOpen,
+  isEditBoardOpen,
+  isDeleteBoardOpen,
   onToggleMobileMenu,
   onCloseMobileMenu,
   onBoardChange,
   onHideSidebar,
   onShowSidebar,
   onCloseTaskModal,
+  onOpenAddTask,
+  onCloseAddTask,
+  onOpenAddBoard,
+  onCloseAddBoard,
+  onOpenEditBoard,
+  onCloseEditBoard,
+  onOpenDeleteBoard,
+  onCloseDeleteBoard,
+  onCreateBoard,
+  onUpdateBoard,
+  onCreateTask,
+  onDeleteBoard,
   theme,
   onToggleTheme,
   children,
 }: AppShellProps) {
   const [isBoardMenuOpen, setIsBoardMenuOpen] = useState(false);
-  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
-  const [isAddBoardOpen, setIsAddBoardOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-
-  const onOpenAddTask = () => setIsAddTaskOpen(true);
-  const onCloseAddTask = () => setIsAddTaskOpen(false);
-  const onCloseAddBoard = () => setIsAddBoardOpen(false);
-  const onCloseDelete = () => setIsDeleteOpen(false);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -71,7 +102,6 @@ export function AppShell({
   }, [isMobileMenuOpen, onCloseMobileMenu]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     setIsBoardMenuOpen(false);
   }, [activeBoardIndex, selectedTask]);
 
@@ -84,6 +114,7 @@ export function AppShell({
             activeBoardIndex={activeBoardIndex}
             onBoardChange={onBoardChange}
             onHideSidebar={onHideSidebar}
+            onOpenAddBoard={onOpenAddBoard}
             theme={theme}
             onToggleTheme={onToggleTheme}
           />
@@ -99,6 +130,8 @@ export function AppShell({
             onToggleBoardMenu={() => setIsBoardMenuOpen((prev) => !prev)}
             onCloseBoardMenu={() => setIsBoardMenuOpen(false)}
             onOpenAddTask={onOpenAddTask}
+            onOpenEditBoard={onOpenEditBoard}
+            onOpenDeleteBoard={onOpenDeleteBoard}
           />
           <main className="min-w-0 flex-1 overflow-hidden bg-[var(--app-bg)]">
             {children}
@@ -108,36 +141,58 @@ export function AppShell({
 
       {!isSidebarOpen && <SidebarToggle onShowSidebar={onShowSidebar} />}
 
-      {isAddTaskOpen && (
-        <AddEditTaskModal
-          columns={boards[activeBoardIndex].columns.map((c) => c.name)}
-          onClose={onCloseAddTask}
-        />
-      )}
-
-      {isAddBoardOpen && <AddEditBoardModal onClose={onCloseAddBoard} />}
-
-      {isDeleteOpen && (
-        <DeleteModal
-          title="Delete this item?"
-          description="This action cannot be undone."
-          onCancel={onCloseDelete}
-          onConfirm={onCloseDelete}
-        />
-      )}
-
       <MobileBoardMenu
         boards={boards}
         activeBoardIndex={activeBoardIndex}
         isOpen={isMobileMenuOpen}
         onClose={onCloseMobileMenu}
         onBoardChange={onBoardChange}
+        onOpenAddBoard={onOpenAddBoard}
         theme={theme}
         onToggleTheme={onToggleTheme}
       />
 
       {selectedTask ? (
         <TaskModal task={selectedTask} onClose={onCloseTaskModal} />
+      ) : null}
+
+      {isAddTaskOpen ? (
+        <AddEditTaskModal
+          columns={activeBoard.columns.map((column) => column.name)}
+          onClose={onCloseAddTask}
+          onSubmit={onCreateTask}
+        />
+      ) : null}
+
+      {isAddBoardOpen ? (
+        <AddEditBoardModal
+          mode="add"
+          title="Add New Board"
+          submitLabel="Create New Board"
+          onClose={onCloseAddBoard}
+          onSubmit={onCreateBoard}
+        />
+      ) : null}
+
+      {isEditBoardOpen ? (
+        <AddEditBoardModal
+          mode="edit"
+          title="Edit Board"
+          submitLabel="Save Changes"
+          initialName={activeBoard.name}
+          initialColumns={activeBoard.columns.map((column) => column.name)}
+          onClose={onCloseEditBoard}
+          onSubmit={onUpdateBoard}
+        />
+      ) : null}
+
+      {isDeleteBoardOpen ? (
+        <DeleteModal
+          title="Delete this board?"
+          description={`Are you sure you want to delete the ‘${activeBoard.name}’ board? This action will remove all columns and tasks and cannot be reversed.`}
+          onCancel={onCloseDeleteBoard}
+          onConfirm={onDeleteBoard}
+        />
       ) : null}
     </div>
   );

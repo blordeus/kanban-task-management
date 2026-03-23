@@ -9,6 +9,7 @@ type MobileBoardMenuProps = {
   isOpen: boolean;
   onClose: () => void;
   onBoardChange: (index: number) => void;
+  onOpenAddBoard: () => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
 };
@@ -19,6 +20,7 @@ export function MobileBoardMenu({
   isOpen,
   onClose,
   onBoardChange,
+  onOpenAddBoard,
   theme,
   onToggleTheme,
 }: MobileBoardMenuProps) {
@@ -68,6 +70,10 @@ export function MobileBoardMenu({
             <li>
               <button
                 type="button"
+                onClick={() => {
+                  onOpenAddBoard();
+                  onClose();
+                }}
                 className="flex h-12 w-full items-center gap-3 rounded-r-full px-6 text-left text-[15px] font-bold text-purple transition hover:bg-purple/10"
               >
                 <img src={iconBoard} alt="" />

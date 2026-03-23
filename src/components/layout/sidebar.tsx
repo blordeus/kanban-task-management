@@ -11,6 +11,7 @@ type SidebarProps = {
   activeBoardIndex: number;
   onBoardChange: (index: number) => void;
   onHideSidebar: () => void;
+  onOpenAddBoard: () => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
 };
@@ -20,6 +21,7 @@ export function Sidebar({
   activeBoardIndex,
   onBoardChange,
   onHideSidebar,
+  onOpenAddBoard,
   theme,
   onToggleTheme,
 }: SidebarProps) {
@@ -69,6 +71,7 @@ export function Sidebar({
             <li>
               <button
                 type="button"
+                onClick={onOpenAddBoard}
                 className="flex h-12 w-full items-center gap-4 rounded-r-full px-8 text-left text-[15px] font-bold text-purple transition hover:bg-purple/10"
               >
                 <img src={iconBoard} alt="" />

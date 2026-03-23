@@ -1,11 +1,15 @@
 type BoardActionsMenuProps = {
   isOpen: boolean;
   onClose: () => void;
+  onEditBoard: () => void;
+  onDeleteBoard: () => void;
 };
 
 export function BoardActionsMenu({
   isOpen,
   onClose,
+  onEditBoard,
+  onDeleteBoard,
 }: BoardActionsMenuProps) {
   if (!isOpen) return null;
 
@@ -22,6 +26,10 @@ export function BoardActionsMenu({
         <div className="flex flex-col items-start gap-4">
           <button
             type="button"
+            onClick={() => {
+              onEditBoard();
+              onClose();
+            }}
             className="text-[13px] font-medium text-medium-grey transition hover:text-purple"
           >
             Edit Board
@@ -29,6 +37,10 @@ export function BoardActionsMenu({
 
           <button
             type="button"
+            onClick={() => {
+              onDeleteBoard();
+              onClose();
+            }}
             className="text-[13px] font-medium text-red transition hover:opacity-80"
           >
             Delete Board

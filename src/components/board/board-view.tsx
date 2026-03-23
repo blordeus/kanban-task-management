@@ -13,9 +13,14 @@ const dotColors = [
 type BoardViewProps = {
   board: Board;
   onTaskClick: (task: Task) => void;
+  onOpenNewColumn: () => void;
 };
 
-export function BoardView({ board, onTaskClick }: BoardViewProps) {
+export function BoardView({
+  board,
+  onTaskClick,
+  onOpenNewColumn,
+}: BoardViewProps) {
   if (board.columns.length === 0) {
     return <EmptyBoard />;
   }
@@ -34,6 +39,7 @@ export function BoardView({ board, onTaskClick }: BoardViewProps) {
 
         <button
           type="button"
+          onClick={onOpenNewColumn}
           className="mt-10 flex h-[calc(100%-40px)] min-h-[700px] w-[280px] shrink-0 items-center justify-center rounded-md bg-[image:var(--new-column-bg)] text-2xl font-bold text-medium-grey transition hover:text-purple"
         >
           + New Column
