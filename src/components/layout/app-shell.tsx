@@ -43,13 +43,13 @@ type AppShellProps = {
   onCreateTask: (input: {
     title: string;
     description: string;
-    status: string;
+    statusColumnId: string;
     subtasks: string[];
   }) => void;
   onDeleteBoard: () => void;
   onOpenNewColumn: () => void;
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
-  onChangeTaskStatus: (taskId: string, status: string) => void;
+  onChangeTaskStatus: (taskId: string, columnId: string) => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
   children: ReactNode;
@@ -161,7 +161,10 @@ export function AppShell({
       {selectedTask ? (
         <TaskModal
           task={selectedTask}
-          statusOptions={activeBoard.columns.map((column) => column.name)}
+          statusOptions={activeBoard.columns.map((column) => ({
+            value: column.id,
+            label: column.name,
+          }))}
           onClose={onCloseTaskModal}
           onToggleSubtask={onToggleSubtask}
           onChangeStatus={onChangeTaskStatus}
@@ -170,7 +173,10 @@ export function AppShell({
 
       {isAddTaskOpen ? (
         <AddEditTaskModal
-          columns={activeBoard.columns.map((column) => column.name)}
+          statusOptions={activeBoard.columns.map((column) => ({
+            value: column.id,
+            label: column.name,
+          }))}
           onClose={onCloseAddTask}
           onSubmit={onCreateTask}
         />

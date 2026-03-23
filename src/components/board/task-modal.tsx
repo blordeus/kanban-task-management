@@ -2,12 +2,17 @@ import { ModalBackdrop } from "../ui/modal-backdrop";
 import type { Task } from "../../types/board";
 import ellipsis from "../../assets/icons/icon-vertical-ellipsis.svg";
 
+type StatusOption = {
+  value: string;
+  label: string;
+};
+
 type TaskModalProps = {
   task: Task;
-  statusOptions: string[];
+  statusOptions: StatusOption[];
   onClose: () => void;
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
-  onChangeStatus: (taskId: string, status: string) => void;
+  onChangeStatus: (taskId: string, columnId: string) => void;
 };
 
 export function TaskModal({
@@ -85,13 +90,13 @@ export function TaskModal({
 
           <select
             id="task-status"
-            value={task.status}
+            value={task.statusColumnId}
             onChange={(e) => onChangeStatus(task.id, e.target.value)}
             className="w-full rounded border border-[var(--border-color)] bg-[var(--surface)] px-4 py-3 text-[13px] font-medium text-[var(--text-primary)] outline-none focus:border-purple"
           >
             {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status}
+              <option key={status.value} value={status.value}>
+                {status.label}
               </option>
             ))}
           </select>

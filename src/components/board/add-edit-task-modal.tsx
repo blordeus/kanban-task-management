@@ -4,32 +4,43 @@ import { Button } from "../ui/button";
 import { TextField } from "../forms/text-field";
 import { TextareaField } from "../forms/textarea-field";
 import { SelectField } from "../forms/select-field";
-import { DynamicInputList } from "../forms/dynamic-input-list";
 
 type SubtaskInput = {
   id: string;
   name: string;
 };
 
+type StatusOption = {
+  value: string;
+  label: string;
+};
+
 type Props = {
-  columns: string[];
+  statusOptions: StatusOption[];
   onClose: () => void;
   onSubmit: (input: {
     title: string;
     description: string;
-    status: string;
+    statusColumnId: string;
     subtasks: string[];
   }) => void;
 };
 
-export function AddEditTaskModal({ columns, onClose, onSubmit }: Props) {
+export function AddEditTaskModal({
+  statusOptions,
+  onClose,
+  onSubmit,
+}: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState(columns[0] || "");
+  const [statusColumnId, setStatusColumnId] = useState(statusOptions[0]?.value ?? "");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ id: "", name: "" }]);
   const [titleError, setTitleError] = useState("");
 
-  const validColumns = useMemo(() => columns.filter(Boolean), [columns]);
+  const normalizedSubtasks = useMemo(
+    () => (subtasks.length > 0 ? subtasks : [{ id: "", name: "" }]),
+    [subtasks]
+  );
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,10 +55,8 @@ export function AddEditTaskModal({ columns, onClose, onSubmit }: Props) {
     onSubmit({
       title,
       description,
-      status: status || validColumns[0] || "",
-      subtasks: subtasks
-        .map((s) => s.name.trim())
-        .filter((name) => name !== ""),
+      statusColumnId: statusColumnId || statusOptions[0]?.value || "",
+      subtasks: normalizedSubtasks.map((item) => item.name),
     });
   }
 
@@ -74,18 +83,53 @@ export function AddEditTaskModal({ columns, onClose, onSubmit }: Props) {
             onChange={setDescription}
           />
 
-          <DynamicInputList
-            label="Subtasks"
-            values={subtasks}
-            onChange={setSubtasks}
-            addLabel="+ Add New Subtask"
-          />
+          <div>
+            <label className="mb-2 block text-xs font-bold text-medium-grey">
+              Subtasks
+            </label>
+
+            <div className="space-y-3">
+              {normalizedSubtasks.map((value, index) => (
+                <div key={value.id || index} className="flex items-center gap-4">
+                  <input
+                    value={value.name}
+                    onChange={(e) => {
+                      const next = [...normalizedSubtasks];
+                      next[index] = { ...next[index], name: e.target.value };
+                      setSubtasks(next);
+                    }}
+                    aria-label={`Subtask ${index + 1}`}
+                    className="flex-1 rounded border border-[var(--border-color)] bg-[var(--surface)] px-4 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-purple"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSubtasks(normalizedSubtasks.filter((_, i) => i !== index))
+                    }
+                    aria-label={`Remove subtask ${index + 1}`}
+                    className="rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSubtasks([...normalizedSubtasks, { id: "", name: "" }])}
+              className="mt-3 w-full rounded-full bg-purple/10 py-2 text-[13px] font-bold text-purple hover:bg-purple/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
+            >
+              + Add New Subtask
+            </button>
+          </div>
 
           <SelectField
             label="Status"
-            value={status}
-            options={validColumns}
-            onChange={setStatus}
+            value={statusColumnId}
+            options={statusOptions}
+            onChange={setStatusColumnId}
           />
 
           <Button className="w-full" type="submit">

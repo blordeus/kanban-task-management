@@ -1,7 +1,12 @@
+type Option = {
+  value: string;
+  label: string;
+};
+
 type Props = {
   label: string;
   value: string;
-  options: string[];
+  options: Option[];
   onChange: (value: string) => void;
 };
 
@@ -18,7 +23,9 @@ export function SelectField({ label, value, options, onChange }: Props) {
         className="w-full rounded border border-[var(--border-color)] bg-[var(--surface)] px-4 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-purple"
       >
         {options.map((opt) => (
-          <option key={opt}>{opt}</option>
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
         ))}
       </select>
     </div>

@@ -135,7 +135,7 @@ function App() {
   function handleAddTask(input: {
     title: string;
     description: string;
-    status: string;
+    statusColumnId: string;
     subtasks: string[];
   }) {
     if (!activeBoard) return;
@@ -144,7 +144,7 @@ function App() {
       id: makeId("task"),
       title: input.title.trim(),
       description: input.description.trim(),
-      status: input.status,
+      statusColumnId: input.statusColumnId,
       subtasks: input.subtasks
         .map((title) => title.trim())
         .filter(Boolean)
@@ -162,7 +162,7 @@ function App() {
         return {
           ...board,
           columns: board.columns.map((column) =>
-            column.name === input.status
+            column.id === input.statusColumnId
               ? { ...column, tasks: [...column.tasks, newTask] }
               : column,
           ),
@@ -213,7 +213,7 @@ function App() {
     });
   }
 
-  function handleChangeTaskStatus(taskId: string, nextStatus: string) {
+  function handleChangeTaskStatus(taskId: string, nextColumnId: string) {
     if (!activeBoard) return;
 
     let updatedTask: Task | null = null;
@@ -222,27 +222,26 @@ function App() {
       prev.map((board, boardIndex) => {
         if (boardIndex !== activeBoardIndex) return board;
 
-        const extractedTasks: Task[] = [];
-
         const columnsWithoutTask = board.columns.map((column) => ({
           ...column,
           tasks: column.tasks.filter((task) => {
             if (task.id === taskId) {
-              extractedTasks.push({ ...task, status: nextStatus });
+              updatedTask = {
+                ...task,
+                statusColumnId: nextColumnId,
+              };
               return false;
             }
             return true;
           }),
         }));
 
-        updatedTask = extractedTasks[0] ?? null;
-
         if (!updatedTask) return board;
 
         return {
           ...board,
           columns: columnsWithoutTask.map((column) =>
-            column.name === nextStatus
+            column.id === nextColumnId
               ? { ...column, tasks: [...column.tasks, updatedTask as Task] }
               : column,
           ),

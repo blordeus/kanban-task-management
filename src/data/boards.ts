@@ -6,25 +6,43 @@ function makeId(prefix: string, value: string, index: number) {
 }
 
 const normalizedBoards: Board[] = (rawData as BoardData).boards.map(
-  (board, boardIndex) => ({
-    id: makeId("board", board.name, boardIndex),
-    name: board.name,
-    columns: board.columns.map((column, columnIndex) => ({
+  (board, boardIndex) => {
+    const columns: Column[] = board.columns.map((column, columnIndex) => ({
       id: makeId("column", `${board.name}-${column.name}`, columnIndex),
       name: column.name,
-      tasks: column.tasks.map((task, taskIndex) => ({
+      tasks: [],
+    }));
+
+    const columnsByName = new Map(columns.map((column) => [column.name, column.id]));
+
+    const populatedColumns: Column[] = board.columns.map((column, columnIndex) => {
+      const columnId = columns[columnIndex].id;
+
+      const tasks: Task[] = column.tasks.map((task, taskIndex) => ({
         id: makeId("task", `${column.name}-${task.title}`, taskIndex),
         title: task.title,
         description: task.description,
-        status: task.status,
-        subtasks: task.subtasks.map((subtask, subtaskIndex) => ({
+        statusColumnId: columnsByName.get(task.status) ?? columnId,
+        subtasks: task.subtasks.map((subtask, subtaskIndex): Subtask => ({
           id: makeId("subtask", `${task.title}-${subtask.title}`, subtaskIndex),
           title: subtask.title,
           isCompleted: subtask.isCompleted,
         })),
-      })) as Task[],
-    })) as Column[],
-  })
+      }));
+
+      return {
+        id: columnId,
+        name: column.name,
+        tasks,
+      };
+    });
+
+    return {
+      id: makeId("board", board.name, boardIndex),
+      name: board.name,
+      columns: populatedColumns,
+    };
+  }
 );
 
 export const boardData: { boards: Board[] } = {
