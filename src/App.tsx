@@ -28,13 +28,18 @@ function App() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
+  const [isDeleteTaskOpen, setIsDeleteTaskOpen] = useState(false);
+
   const [isAddBoardOpen, setIsAddBoardOpen] = useState(false);
   const [isEditBoardOpen, setIsEditBoardOpen] = useState(false);
   const [isDeleteBoardOpen, setIsDeleteBoardOpen] = useState(false);
-  const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
-  const [isDeleteTaskOpen, setIsDeleteTaskOpen] = useState(false);
+
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     const savedTheme = localStorage.getItem(STORAGE_KEYS.theme);
     return savedTheme === "dark" ? "dark" : "light";
@@ -61,6 +66,7 @@ function App() {
     const syncLayout = () => {
       const isDesktop = window.innerWidth >= 1024;
       setIsSidebarOpen(isDesktop);
+
       if (isDesktop) {
         setIsMobileMenuOpen(false);
       }
@@ -68,6 +74,7 @@ function App() {
 
     syncLayout();
     window.addEventListener("resize", syncLayout);
+
     return () => window.removeEventListener("resize", syncLayout);
   }, []);
 
@@ -83,6 +90,17 @@ function App() {
     [boards, activeBoardIndex],
   );
 
+  const selectedTask = useMemo(() => {
+    if (!activeBoard || !selectedTaskId) return null;
+
+    for (const column of activeBoard.columns) {
+      const foundTask = column.tasks.find((task) => task.id === selectedTaskId);
+      if (foundTask) return foundTask;
+    }
+
+    return null;
+  }, [activeBoard, selectedTaskId]);
+
   useEffect(() => {
     if (!boards.length) {
       setActiveBoardId(null);
@@ -93,6 +111,48 @@ function App() {
       setActiveBoardId(boards[0].id);
     }
   }, [boards, activeBoardId]);
+
+  function handleClearSelectedTask() {
+    setSelectedTaskId(null);
+    setIsTaskModalOpen(false);
+    setIsEditTaskOpen(false);
+    setIsDeleteTaskOpen(false);
+  }
+
+  function handleOpenTaskModal(task: Task) {
+    setSelectedTaskId(task.id);
+    setIsTaskModalOpen(true);
+  }
+
+  function handleCloseTaskModal() {
+    setIsTaskModalOpen(false);
+  }
+
+  function handleOpenEditTask() {
+    setIsTaskModalOpen(false);
+    setIsEditTaskOpen(true);
+  }
+
+  function handleCloseEditTask() {
+    setIsEditTaskOpen(false);
+
+    if (selectedTaskId) {
+      setIsTaskModalOpen(true);
+    }
+  }
+
+  function handleOpenDeleteTask() {
+    setIsTaskModalOpen(false);
+    setIsDeleteTaskOpen(true);
+  }
+
+  function handleCloseDeleteTask() {
+    setIsDeleteTaskOpen(false);
+
+    if (selectedTaskId) {
+      setIsTaskModalOpen(true);
+    }
+  }
 
   function handleAddBoard(name: string, columnInputs: EditableColumnInput[]) {
     const cleanedColumns: Column[] = columnInputs
@@ -160,8 +220,56 @@ function App() {
       ),
     );
 
-    setSelectedTask(null);
+    handleClearSelectedTask();
     setIsEditBoardOpen(false);
+  }
+
+  function handleDeleteBoard() {
+    if (!activeBoard) return;
+
+    setBoards((prev) => prev.filter((board) => board.id !== activeBoard.id));
+    handleClearSelectedTask();
+    setIsDeleteBoardOpen(false);
+  }
+
+  function handleAddTask(input: {
+    title: string;
+    description: string;
+    statusColumnId: string;
+    subtasks: { id: string; name: string }[];
+  }) {
+    if (!activeBoard) return;
+
+    const newTask: Task = {
+      id: makeId("task"),
+      title: input.title.trim(),
+      description: input.description.trim(),
+      statusColumnId: input.statusColumnId,
+      subtasks: input.subtasks
+        .map((subtask) => ({
+          id: subtask.id || makeId("subtask"),
+          title: subtask.name.trim(),
+          isCompleted: false,
+        }))
+        .filter((subtask) => subtask.title),
+    };
+
+    setBoards((prev) =>
+      prev.map((board) => {
+        if (board.id !== activeBoard.id) return board;
+
+        return {
+          ...board,
+          columns: board.columns.map((column) =>
+            column.id === input.statusColumnId
+              ? { ...column, tasks: [...column.tasks, newTask] }
+              : column,
+          ),
+        };
+      }),
+    );
+
+    setIsAddTaskOpen(false);
   }
 
   function handleUpdateTask(input: {
@@ -208,8 +316,8 @@ function App() {
       }),
     );
 
-    setSelectedTask(updatedTask);
     setIsEditTaskOpen(false);
+    setIsTaskModalOpen(true);
   }
 
   function handleDeleteTask() {
@@ -229,56 +337,7 @@ function App() {
       }),
     );
 
-    setSelectedTask(null);
-    setIsDeleteTaskOpen(false);
-  }
-
-  function handleDeleteBoard() {
-    if (!activeBoard) return;
-
-    setBoards((prev) => prev.filter((board) => board.id !== activeBoard.id));
-    setSelectedTask(null);
-    setIsDeleteBoardOpen(false);
-  }
-
-  function handleAddTask(input: {
-    title: string;
-    description: string;
-    statusColumnId: string;
-    subtasks: { id: string; name: string }[];
-  }) {
-    if (!activeBoard) return;
-
-    const newTask: Task = {
-      id: makeId("task"),
-      title: input.title.trim(),
-      description: input.description.trim(),
-      statusColumnId: input.statusColumnId,
-      subtasks: input.subtasks
-        .map((subtask) => ({
-          id: subtask.id || makeId("subtask"),
-          title: subtask.name.trim(),
-          isCompleted: false,
-        }))
-        .filter((subtask) => subtask.title),
-    };
-
-    setBoards((prev) =>
-      prev.map((board) => {
-        if (board.id !== activeBoard.id) return board;
-
-        return {
-          ...board,
-          columns: board.columns.map((column) =>
-            column.id === input.statusColumnId
-              ? { ...column, tasks: [...column.tasks, newTask] }
-              : column,
-          ),
-        };
-      }),
-    );
-
-    setIsAddTaskOpen(false);
+    handleClearSelectedTask();
   }
 
   function handleToggleSubtask(taskId: string, subtaskId: string) {
@@ -308,35 +367,22 @@ function App() {
         };
       }),
     );
-
-    setSelectedTask((prev) => {
-      if (!prev || prev.id !== taskId) return prev;
-
-      return {
-        ...prev,
-        subtasks: prev.subtasks.map((subtask) =>
-          subtask.id === subtaskId
-            ? { ...subtask, isCompleted: !subtask.isCompleted }
-            : subtask,
-        ),
-      };
-    });
   }
 
   function handleChangeTaskStatus(taskId: string, nextColumnId: string) {
     if (!activeBoard) return;
 
-    let updatedTask: Task | null = null;
-
     setBoards((prev) =>
       prev.map((board) => {
         if (board.id !== activeBoard.id) return board;
+
+        let movedTask: Task | null = null;
 
         const columnsWithoutTask = board.columns.map((column) => ({
           ...column,
           tasks: column.tasks.filter((task) => {
             if (task.id === taskId) {
-              updatedTask = {
+              movedTask = {
                 ...task,
                 statusColumnId: nextColumnId,
               };
@@ -346,22 +392,18 @@ function App() {
           }),
         }));
 
-        if (!updatedTask) return board;
+        if (!movedTask) return board;
 
         return {
           ...board,
           columns: columnsWithoutTask.map((column) =>
             column.id === nextColumnId
-              ? { ...column, tasks: [...column.tasks, updatedTask as Task] }
+              ? { ...column, tasks: [...column.tasks, movedTask as Task] }
               : column,
           ),
         };
       }),
     );
-
-    if (updatedTask) {
-      setSelectedTask(updatedTask);
-    }
   }
 
   function handleOpenNewColumn() {
@@ -379,7 +421,10 @@ function App() {
       isSidebarOpen={isSidebarOpen}
       isMobileMenuOpen={isMobileMenuOpen}
       selectedTask={selectedTask}
+      isTaskModalOpen={isTaskModalOpen}
       isAddTaskOpen={isAddTaskOpen}
+      isEditTaskOpen={isEditTaskOpen}
+      isDeleteTaskOpen={isDeleteTaskOpen}
       isAddBoardOpen={isAddBoardOpen}
       isEditBoardOpen={isEditBoardOpen}
       isDeleteBoardOpen={isDeleteBoardOpen}
@@ -387,20 +432,24 @@ function App() {
       onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
       onBoardChange={(index) => {
         const nextBoard = boards[index];
+
         if (nextBoard) {
           setActiveBoardId(nextBoard.id);
         }
+
         setIsMobileMenuOpen(false);
-        setSelectedTask(null);
-        setIsEditTaskOpen(false);
-        setIsDeleteTaskOpen(false);
+        handleClearSelectedTask();
       }}
       onHideSidebar={() => setIsSidebarOpen(false)}
       onShowSidebar={() => setIsSidebarOpen(true)}
-      onSelectTask={setSelectedTask}
-      onCloseTaskModal={() => setSelectedTask(null)}
+      onOpenTaskModal={handleOpenTaskModal}
+      onCloseTaskModal={handleCloseTaskModal}
       onOpenAddTask={() => setIsAddTaskOpen(true)}
       onCloseAddTask={() => setIsAddTaskOpen(false)}
+      onOpenEditTask={handleOpenEditTask}
+      onCloseEditTask={handleCloseEditTask}
+      onOpenDeleteTask={handleOpenDeleteTask}
+      onCloseDeleteTask={handleCloseDeleteTask}
       onOpenAddBoard={() => setIsAddBoardOpen(true)}
       onCloseAddBoard={() => setIsAddBoardOpen(false)}
       onOpenEditBoard={() => setIsEditBoardOpen(true)}
@@ -410,15 +459,9 @@ function App() {
       onCreateBoard={handleAddBoard}
       onUpdateBoard={handleEditBoard}
       onCreateTask={handleAddTask}
-      onDeleteBoard={handleDeleteBoard}
-      isEditTaskOpen={isEditTaskOpen}
-      isDeleteTaskOpen={isDeleteTaskOpen}
-      onOpenEditTask={() => setIsEditTaskOpen(true)}
-      onCloseEditTask={() => setIsEditTaskOpen(false)}
-      onOpenDeleteTask={() => setIsDeleteTaskOpen(true)}
-      onCloseDeleteTask={() => setIsDeleteTaskOpen(false)}
       onUpdateTask={handleUpdateTask}
       onDeleteTask={handleDeleteTask}
+      onDeleteBoard={handleDeleteBoard}
       onOpenNewColumn={handleOpenNewColumn}
       onToggleSubtask={handleToggleSubtask}
       onChangeTaskStatus={handleChangeTaskStatus}
@@ -429,7 +472,7 @@ function App() {
     >
       <BoardView
         board={activeBoard}
-        onTaskClick={setSelectedTask}
+        onTaskClick={handleOpenTaskModal}
         onOpenNewColumn={handleOpenNewColumn}
       />
     </AppShell>

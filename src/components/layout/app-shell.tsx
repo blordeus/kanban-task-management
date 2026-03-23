@@ -18,53 +18,72 @@ type AppShellProps = {
   activeBoard: Board;
   isSidebarOpen: boolean;
   isMobileMenuOpen: boolean;
+
   selectedTask: Task | null;
+  isTaskModalOpen: boolean;
+
   isAddTaskOpen: boolean;
   isEditTaskOpen: boolean;
   isDeleteTaskOpen: boolean;
+
   isAddBoardOpen: boolean;
   isEditBoardOpen: boolean;
   isDeleteBoardOpen: boolean;
+
   onToggleMobileMenu: () => void;
   onCloseMobileMenu: () => void;
   onBoardChange: (index: number) => void;
+
   onHideSidebar: () => void;
   onShowSidebar: () => void;
-  onSelectTask: (task: Task | null) => void;
+
   onCloseTaskModal: () => void;
   onOpenAddTask: () => void;
   onCloseAddTask: () => void;
+
   onOpenEditTask: () => void;
   onCloseEditTask: () => void;
+
   onOpenDeleteTask: () => void;
   onCloseDeleteTask: () => void;
+
   onOpenAddBoard: () => void;
   onCloseAddBoard: () => void;
+
   onOpenEditBoard: () => void;
   onCloseEditBoard: () => void;
+
   onOpenDeleteBoard: () => void;
   onCloseDeleteBoard: () => void;
+
   onCreateBoard: (name: string, columns: EditableColumnInput[]) => void;
   onUpdateBoard: (name: string, columns: EditableColumnInput[]) => void;
+
   onCreateTask: (input: {
     title: string;
     description: string;
     statusColumnId: string;
     subtasks: { id: string; name: string }[];
   }) => void;
+
   onUpdateTask: (input: {
     title: string;
     description: string;
     statusColumnId: string;
     subtasks: { id: string; name: string }[];
   }) => void;
+
   onDeleteTask: () => void;
   onDeleteBoard: () => void;
+
   onOpenNewColumn: () => void;
+
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
   onChangeTaskStatus: (taskId: string, columnId: string) => void;
+
   theme: "light" | "dark";
   onToggleTheme: () => void;
+
   children: ReactNode;
 };
 
@@ -75,41 +94,59 @@ export function AppShell({
   activeBoard,
   isSidebarOpen,
   isMobileMenuOpen,
+
   selectedTask,
+  isTaskModalOpen,
+
   isAddTaskOpen,
   isEditTaskOpen,
   isDeleteTaskOpen,
+
   isAddBoardOpen,
   isEditBoardOpen,
   isDeleteBoardOpen,
+
   onToggleMobileMenu,
   onCloseMobileMenu,
   onBoardChange,
+
   onHideSidebar,
   onShowSidebar,
+
   onCloseTaskModal,
   onOpenAddTask,
   onCloseAddTask,
+
   onOpenEditTask,
   onCloseEditTask,
+
   onOpenDeleteTask,
   onCloseDeleteTask,
+
   onOpenAddBoard,
   onCloseAddBoard,
+
   onOpenEditBoard,
   onCloseEditBoard,
+
   onOpenDeleteBoard,
   onCloseDeleteBoard,
+
   onCreateBoard,
   onUpdateBoard,
+
   onCreateTask,
   onUpdateTask,
+
   onDeleteTask,
   onDeleteBoard,
+
   onToggleSubtask,
   onChangeTaskStatus,
+
   theme,
   onToggleTheme,
+
   children,
 }: AppShellProps) {
   const [isBoardMenuOpen, setIsBoardMenuOpen] = useState(false);
@@ -160,6 +197,7 @@ export function AppShell({
             onOpenEditBoard={onOpenEditBoard}
             onOpenDeleteBoard={onOpenDeleteBoard}
           />
+
           <main className="min-w-0 flex-1 overflow-hidden bg-[var(--app-bg)]">
             {children}
           </main>
@@ -179,7 +217,8 @@ export function AppShell({
         onToggleTheme={onToggleTheme}
       />
 
-      {selectedTask ? (
+      {/* TASK VIEW MODAL */}
+      {isTaskModalOpen && selectedTask ? (
         <TaskModal
           task={selectedTask}
           statusOptions={activeBoard.columns.map((column) => ({
@@ -189,17 +228,12 @@ export function AppShell({
           onClose={onCloseTaskModal}
           onToggleSubtask={onToggleSubtask}
           onChangeStatus={onChangeTaskStatus}
-          onEditTask={() => {
-            onCloseTaskModal();
-            onOpenEditTask();
-          }}
-          onDeleteTask={() => {
-            onCloseTaskModal();
-            onOpenDeleteTask();
-          }}
+          onEditTask={onOpenEditTask}
+          onDeleteTask={onOpenDeleteTask}
         />
       ) : null}
 
+      {/* ADD TASK */}
       {isAddTaskOpen ? (
         <AddEditTaskModal
           title="Add New Task"
@@ -213,6 +247,7 @@ export function AppShell({
         />
       ) : null}
 
+      {/* EDIT TASK */}
       {isEditTaskOpen && selectedTask ? (
         <AddEditTaskModal
           title="Edit Task"
@@ -235,6 +270,7 @@ export function AppShell({
         />
       ) : null}
 
+      {/* DELETE TASK */}
       {isDeleteTaskOpen && selectedTask ? (
         <DeleteModal
           title="Delete this task?"
@@ -244,6 +280,7 @@ export function AppShell({
         />
       ) : null}
 
+      {/* ADD BOARD */}
       {isAddBoardOpen ? (
         <AddEditBoardModal
           mode="add"
@@ -255,6 +292,7 @@ export function AppShell({
         />
       ) : null}
 
+      {/* EDIT BOARD */}
       {isEditBoardOpen ? (
         <AddEditBoardModal
           mode="edit"
@@ -270,6 +308,7 @@ export function AppShell({
         />
       ) : null}
 
+      {/* DELETE BOARD */}
       {isDeleteBoardOpen ? (
         <DeleteModal
           title="Delete this board?"
