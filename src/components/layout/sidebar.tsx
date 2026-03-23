@@ -1,26 +1,36 @@
 import logoDark from "../../assets/logos/logo-dark.svg";
+import logoLight from "../../assets/logos/logo-light.svg";
 import iconBoard from "../../assets/icons/icon-board.svg";
-import iconLightTheme from "../../assets/icons/icon-light-theme.svg";
-import iconDarkTheme from "../../assets/icons/icon-dark-theme.svg";
 import iconHideSidebar from "../../assets/icons/icon-hide-sidebar.svg";
 import { cn } from "../../utils/cn";
 import type { Board } from "../../types/board";
+import { ThemeToggle } from "./theme-toggle";
 
 type SidebarProps = {
   boards: Board[];
   activeBoardIndex: number;
   onBoardChange: (index: number) => void;
+  onHideSidebar: () => void;
+  theme: "light" | "dark";
+  onToggleTheme: () => void;
 };
 
 export function Sidebar({
   boards,
   activeBoardIndex,
   onBoardChange,
+  onHideSidebar,
+  theme,
+  onToggleTheme,
 }: SidebarProps) {
   return (
     <aside className="hidden h-screen w-[300px] shrink-0 flex-col border-r border-lines-light bg-white dark:border-lines-dark dark:bg-dark-grey lg:flex">
-      <div className="px-8 pb-14 pt-8">
-        <img src={logoDark} alt="Kanban" className="dark:hidden" />
+      <div className="px-8 pb-[54px] pt-8">
+        {theme === "light" ? (
+          <img src={logoDark} alt="Kanban" />
+        ) : (
+          <img src={logoLight} alt="Kanban" />
+        )}
       </div>
 
       <div className="flex flex-1 flex-col">
@@ -28,8 +38,8 @@ export function Sidebar({
           All Boards ({boards.length})
         </div>
 
-        <nav className="mt-5 pr-6">
-          <ul className="space-y-1">
+        <nav className="mt-[19px] pr-6">
+          <ul className="space-y-[2px]">
             {boards.map((board, index) => {
               const isActive = index === activeBoardIndex;
 
@@ -69,22 +79,11 @@ export function Sidebar({
         </nav>
 
         <div className="mt-auto px-4 pb-8">
-          <div className="rounded-md bg-light-grey px-6 py-4 dark:bg-very-dark-grey">
-            <div className="flex items-center justify-center gap-6">
-              <img src={iconLightTheme} alt="" />
-              <button
-                type="button"
-                aria-label="Toggle theme"
-                className="flex h-5 w-10 items-center rounded-full bg-purple px-1"
-              >
-                <span className="block h-3.5 w-3.5 rounded-full bg-white" />
-              </button>
-              <img src={iconDarkTheme} alt="" />
-            </div>
-          </div>
+          <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
 
           <button
             type="button"
+            onClick={onHideSidebar}
             className="mt-4 flex items-center gap-4 px-4 py-3 text-[15px] font-bold text-medium-grey transition hover:text-purple"
           >
             <img src={iconHideSidebar} alt="" />

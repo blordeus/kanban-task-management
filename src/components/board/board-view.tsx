@@ -4,7 +4,7 @@ import { EmptyBoard } from "./empty-board";
 
 const dotColors = [
   "bg-cyan-400",
-  "bg-purple",
+  "bg-violet-500",
   "bg-emerald-400",
   "bg-orange-400",
   "bg-pink-400",
@@ -20,8 +20,8 @@ export function BoardView({ board }: BoardViewProps) {
   }
 
   return (
-    <div className="overflow-x-auto p-6 md:p-8">
-      <div className="flex min-w-max gap-6">
+    <div className="h-full overflow-x-auto overflow-y-hidden px-4 pb-6 pt-6 md:px-6 md:pb-8 md:pt-6 lg:px-6 lg:pb-8 lg:pt-6">
+      <div className="flex h-full min-w-max gap-6">
         {board.columns.map((column, index) => (
           <Column
             key={column.name}
@@ -32,7 +32,7 @@ export function BoardView({ board }: BoardViewProps) {
 
         <button
           type="button"
-          className="mt-10 flex min-h-[calc(100vh-220px)] w-[280px] shrink-0 items-center justify-center rounded-md bg-[#e9effa] text-2xl font-bold text-medium-grey transition hover:text-purple dark:bg-gradient-to-b dark:from-white/10 dark:to-white/5"
+          className="mt-10 flex h-[calc(100%-40px)] min-h-[700px] w-[280px] shrink-0 items-center justify-center rounded-md bg-[#e9effa] text-2xl font-bold text-medium-grey transition hover:text-purple dark:bg-gradient-to-b dark:from-white/10 dark:to-white/5"
         >
           + New Column
         </button>

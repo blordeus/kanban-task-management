@@ -2,9 +2,9 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "../../utils/cn";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  children: ReactNode;
-  variant?: "primary" | "secondary" | "ghost";
-  size?: "sm" | "md";
+  children?: ReactNode;
+  variant?: "primary" | "secondary" | "ghost" | "destructive";
+  size?: "sm" | "md" | "icon";
 };
 
 export function Button({
@@ -12,6 +12,7 @@ export function Button({
   className,
   variant = "primary",
   size = "md",
+  type = "button",
   ...props
 }: ButtonProps) {
   const base =
@@ -22,15 +23,18 @@ export function Button({
     secondary:
       "bg-purple/10 text-purple hover:bg-purple/20 dark:bg-white dark:text-purple dark:hover:bg-white/90",
     ghost: "bg-transparent text-medium-grey hover:text-purple",
+    destructive: "bg-red text-white hover:bg-red-hover",
   };
 
   const sizes = {
     sm: "h-10 px-4 text-[13px]",
     md: "h-12 px-6 text-[15px]",
+    icon: "h-12 w-12 p-0",
   };
 
   return (
     <button
+      type={type}
       className={cn(base, variants[variant], sizes[size], className)}
       {...props}
     >

@@ -10,7 +10,7 @@ export function Column({ column, colorClass }: ColumnProps) {
   return (
     <section className="w-[280px] shrink-0">
       <div className="mb-6 flex items-center gap-3">
-        <span className={`h-4 w-4 rounded-full ${colorClass}`} />
+        <span className={`h-[15px] w-[15px] rounded-full ${colorClass}`} />
         <h2 className="text-xs font-bold uppercase tracking-[2.4px] text-medium-grey">
           {column.name} ({column.tasks.length})
         </h2>
