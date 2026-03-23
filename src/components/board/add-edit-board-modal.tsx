@@ -4,34 +4,38 @@ import { Button } from "../ui/button";
 import { TextField } from "../forms/text-field";
 import { DynamicInputList } from "../forms/dynamic-input-list";
 
+export type EditableColumnInput = {
+  id: string;
+  name: string;
+};
+
 type Props = {
   mode: "add" | "edit";
   initialName?: string;
-  initialColumns?: string[];
+  initialColumns?: EditableColumnInput[];
   submitLabel: string;
   title: string;
   onClose: () => void;
-  onSubmit: (name: string, columns: string[]) => void;
+  onSubmit: (name: string, columns: EditableColumnInput[]) => void;
 };
 
 export function AddEditBoardModal({
-  mode,
   initialName = "",
-  initialColumns = [""],
+  initialColumns = [{ id: "", name: "" }],
   submitLabel,
   title,
   onClose,
   onSubmit,
 }: Props) {
   const [name, setName] = useState(initialName);
-  const [columns, setColumns] = useState(
-    initialColumns.length > 0 ? initialColumns : [""]
+  const [columns, setColumns] = useState<EditableColumnInput[]>(
+    initialColumns.length > 0 ? initialColumns : [{ id: "", name: "" }],
   );
   const [nameError, setNameError] = useState("");
 
   const normalizedColumns = useMemo(
-    () => (columns.length > 0 ? columns : [""]),
-    [columns]
+    () => (columns.length > 0 ? columns : [{ id: "", name: "" }]),
+    [columns],
   );
 
   function handleSubmit(e: React.FormEvent) {

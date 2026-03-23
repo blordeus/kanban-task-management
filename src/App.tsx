@@ -3,6 +3,7 @@ import { AppShell } from "./components/layout/app-shell";
 import { BoardView } from "./components/board/board-view";
 import { boardData } from "./data/boards";
 import type { Board, Column, Task, Subtask } from "./types/board";
+import type { EditableColumnInput } from "./components/board/add-edit-board-modal";
 import { makeId } from "./utils/make-id";
 
 function App() {
@@ -41,12 +42,12 @@ function App() {
 
   const activeBoard = useMemo(
     () => boards[activeBoardIndex] ?? boards[0],
-    [boards, activeBoardIndex]
+    [boards, activeBoardIndex],
   );
 
-  function handleAddBoard(name: string, columnNames: string[]) {
-    const cleanedColumns: Column[] = columnNames
-      .map((column) => column.trim())
+  function handleAddBoard(name: string, columnInputs: EditableColumnInput[]) {
+    const cleanedColumns: Column[] = columnInputs
+      .map((column) => column.name.trim())
       .filter(Boolean)
       .map((columnName) => ({
         id: makeId("column"),
@@ -69,16 +70,38 @@ function App() {
     setIsAddBoardOpen(false);
   }
 
-  function handleEditBoard(name: string, nextColumnInputs: string[]) {
+  function handleEditBoard(
+    name: string,
+    nextColumnInputs: EditableColumnInput[],
+  ) {
     if (!activeBoard) return;
 
     const trimmedName = name.trim();
-    const cleanedColumnNames = nextColumnInputs.map((item) => item.trim()).filter(Boolean);
 
-    const nextColumns: Column[] = cleanedColumnNames.map((columnName) => {
-      const existing = activeBoard.columns.find((column) => column.name === columnName);
-      return existing ?? { id: makeId("column"), name: columnName, tasks: [] };
-    });
+    const nextColumns: Column[] = nextColumnInputs
+      .map((input) => ({
+        id: input.id,
+        name: input.name.trim(),
+      }))
+      .filter((input) => input.name)
+      .map((input) => {
+        const existing = activeBoard.columns.find(
+          (column) => column.id === input.id,
+        );
+
+        if (existing) {
+          return {
+            ...existing,
+            name: input.name,
+          };
+        }
+
+        return {
+          id: makeId("column"),
+          name: input.name,
+          tasks: [],
+        };
+      });
 
     setBoards((prev) =>
       prev.map((board, index) =>
@@ -88,8 +111,8 @@ function App() {
               name: trimmedName,
               columns: nextColumns,
             }
-          : board
-      )
+          : board,
+      ),
     );
 
     setSelectedTask(null);
@@ -99,7 +122,8 @@ function App() {
   function handleDeleteBoard() {
     setBoards((prev) => {
       const next = prev.filter((_, index) => index !== activeBoardIndex);
-      const nextIndex = next.length === 0 ? 0 : Math.min(activeBoardIndex, next.length - 1);
+      const nextIndex =
+        next.length === 0 ? 0 : Math.min(activeBoardIndex, next.length - 1);
       setActiveBoardIndex(nextIndex);
       return next;
     });
@@ -140,10 +164,10 @@ function App() {
           columns: board.columns.map((column) =>
             column.name === input.status
               ? { ...column, tasks: [...column.tasks, newTask] }
-              : column
+              : column,
           ),
         };
-      })
+      }),
     );
 
     setIsAddTaskOpen(false);
@@ -166,13 +190,13 @@ function App() {
                 subtasks: task.subtasks.map((subtask) =>
                   subtask.id === subtaskId
                     ? { ...subtask, isCompleted: !subtask.isCompleted }
-                    : subtask
+                    : subtask,
                 ),
               };
             }),
           })),
         };
-      })
+      }),
     );
 
     setSelectedTask((prev) => {
@@ -183,7 +207,7 @@ function App() {
         subtasks: prev.subtasks.map((subtask) =>
           subtask.id === subtaskId
             ? { ...subtask, isCompleted: !subtask.isCompleted }
-            : subtask
+            : subtask,
         ),
       };
     });
@@ -220,10 +244,10 @@ function App() {
           columns: columnsWithoutTask.map((column) =>
             column.name === nextStatus
               ? { ...column, tasks: [...column.tasks, updatedTask as Task] }
-              : column
+              : column,
           ),
         };
-      })
+      }),
     );
 
     if (updatedTask) {

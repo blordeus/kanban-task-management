@@ -1,9 +1,14 @@
 import iconCross from "../../assets/icons/icon-cross.svg";
 
+type ListItem = {
+  id: string;
+  name: string;
+};
+
 type Props = {
   label: string;
-  values: string[];
-  onChange: (values: string[]) => void;
+  values: ListItem[];
+  onChange: (values: ListItem[]) => void;
   addLabel: string;
 };
 
@@ -15,7 +20,10 @@ export function DynamicInputList({
 }: Props) {
   const update = (index: number, value: string) => {
     const next = [...values];
-    next[index] = value;
+    next[index] = {
+      ...next[index],
+      name: value,
+    };
     onChange(next);
   };
 
@@ -24,7 +32,7 @@ export function DynamicInputList({
   };
 
   const add = () => {
-    onChange([...values, ""]);
+    onChange([...values, { id: "", name: "" }]);
   };
 
   return (
@@ -35,9 +43,9 @@ export function DynamicInputList({
 
       <div className="space-y-3">
         {values.map((value, index) => (
-          <div key={index} className="flex items-center gap-4">
+          <div key={value.id || index} className="flex items-center gap-4">
             <input
-              value={value}
+              value={value.name}
               onChange={(e) => update(index, e.target.value)}
               aria-label={`${label} ${index + 1}`}
               className="flex-1 rounded border border-[var(--border-color)] bg-[var(--surface)] px-4 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-purple"

@@ -6,6 +6,11 @@ import { TextareaField } from "../forms/textarea-field";
 import { SelectField } from "../forms/select-field";
 import { DynamicInputList } from "../forms/dynamic-input-list";
 
+type SubtaskInput = {
+  id: string;
+  name: string;
+};
+
 type Props = {
   columns: string[];
   onClose: () => void;
@@ -21,7 +26,7 @@ export function AddEditTaskModal({ columns, onClose, onSubmit }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState(columns[0] || "");
-  const [subtasks, setSubtasks] = useState([""]);
+  const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ id: "", name: "" }]);
   const [titleError, setTitleError] = useState("");
 
   const validColumns = useMemo(() => columns.filter(Boolean), [columns]);
@@ -40,7 +45,9 @@ export function AddEditTaskModal({ columns, onClose, onSubmit }: Props) {
       title,
       description,
       status: status || validColumns[0] || "",
-      subtasks,
+      subtasks: subtasks
+        .map((s) => s.name.trim())
+        .filter((name) => name !== ""),
     });
   }
 

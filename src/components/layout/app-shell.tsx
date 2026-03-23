@@ -9,6 +9,7 @@ import { AddEditTaskModal } from "../board/add-edit-task-modal";
 import { AddEditBoardModal } from "../board/add-edit-board-modal";
 import { DeleteModal } from "../ui/delete-modal";
 import type { Board, Task } from "../../types/board";
+import type { EditableColumnInput } from "../board/add-edit-board-modal";
 
 type AppShellProps = {
   boards: Board[];
@@ -37,8 +38,8 @@ type AppShellProps = {
   onCloseEditBoard: () => void;
   onOpenDeleteBoard: () => void;
   onCloseDeleteBoard: () => void;
-  onCreateBoard: (name: string, columns: string[]) => void;
-  onUpdateBoard: (name: string, columns: string[]) => void;
+  onCreateBoard: (name: string, columns: EditableColumnInput[]) => void;
+  onUpdateBoard: (name: string, columns: EditableColumnInput[]) => void;
   onCreateTask: (input: {
     title: string;
     description: string;
@@ -180,6 +181,7 @@ export function AppShell({
           mode="add"
           title="Add New Board"
           submitLabel="Create New Board"
+          initialColumns={[{ id: "", name: "" }]}
           onClose={onCloseAddBoard}
           onSubmit={onCreateBoard}
         />
@@ -191,7 +193,10 @@ export function AppShell({
           title="Edit Board"
           submitLabel="Save Changes"
           initialName={activeBoard.name}
-          initialColumns={activeBoard.columns.map((column) => column.name)}
+          initialColumns={activeBoard.columns.map((column) => ({
+            id: column.id,
+            name: column.name,
+          }))}
           onClose={onCloseEditBoard}
           onSubmit={onUpdateBoard}
         />
