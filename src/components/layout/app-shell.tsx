@@ -5,6 +5,9 @@ import { Sidebar } from "./sidebar";
 import { SidebarToggle } from "./sidebar-toggle";
 import { MobileBoardMenu } from "./mobile-board-menu";
 import { TaskModal } from "../board/task-modal";
+import { AddEditTaskModal } from "../board/add-edit-task-modal";
+import { AddEditBoardModal } from "../board/add-edit-board-modal";
+import { DeleteModal } from "../ui/delete-modal";
 import type { Board, Task } from "../../types/board";
 
 type AppShellProps = {
@@ -45,6 +48,14 @@ export function AppShell({
   children,
 }: AppShellProps) {
   const [isBoardMenuOpen, setIsBoardMenuOpen] = useState(false);
+  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [isAddBoardOpen, setIsAddBoardOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const onOpenAddTask = () => setIsAddTaskOpen(true);
+  const onCloseAddTask = () => setIsAddTaskOpen(false);
+  const onCloseAddBoard = () => setIsAddBoardOpen(false);
+  const onCloseDelete = () => setIsDeleteOpen(false);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -60,6 +71,7 @@ export function AppShell({
   }, [isMobileMenuOpen, onCloseMobileMenu]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setIsBoardMenuOpen(false);
   }, [activeBoardIndex, selectedTask]);
 
@@ -84,10 +96,9 @@ export function AppShell({
             isMobileMenuOpen={isMobileMenuOpen}
             isBoardMenuOpen={isBoardMenuOpen}
             onToggleMobileMenu={onToggleMobileMenu}
-            onToggleBoardMenu={() =>
-              setIsBoardMenuOpen((prev) => !prev)
-            }
+            onToggleBoardMenu={() => setIsBoardMenuOpen((prev) => !prev)}
             onCloseBoardMenu={() => setIsBoardMenuOpen(false)}
+            onOpenAddTask={onOpenAddTask}
           />
           <main className="min-w-0 flex-1 overflow-hidden bg-[var(--app-bg)]">
             {children}
@@ -96,6 +107,24 @@ export function AppShell({
       </div>
 
       {!isSidebarOpen && <SidebarToggle onShowSidebar={onShowSidebar} />}
+
+      {isAddTaskOpen && (
+        <AddEditTaskModal
+          columns={boards[activeBoardIndex].columns.map((c) => c.name)}
+          onClose={onCloseAddTask}
+        />
+      )}
+
+      {isAddBoardOpen && <AddEditBoardModal onClose={onCloseAddBoard} />}
+
+      {isDeleteOpen && (
+        <DeleteModal
+          title="Delete this item?"
+          description="This action cannot be undone."
+          onCancel={onCloseDelete}
+          onConfirm={onCloseDelete}
+        />
+      )}
 
       <MobileBoardMenu
         boards={boards}

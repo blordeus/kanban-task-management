@@ -14,6 +14,7 @@ type AppHeaderProps = {
   onToggleMobileMenu: () => void;
   onToggleBoardMenu: () => void;
   onCloseBoardMenu: () => void;
+  onOpenAddTask: () => void;
 };
 
 export function AppHeader({
@@ -24,6 +25,7 @@ export function AppHeader({
   onToggleMobileMenu,
   onToggleBoardMenu,
   onCloseBoardMenu,
+  onOpenAddTask,
 }: AppHeaderProps) {
   return (
     <header className="relative z-30 flex h-16 items-center justify-between border-b border-[var(--border-color)] bg-[var(--surface)] px-4 md:h-20 md:px-6 lg:h-24 lg:px-8">
@@ -56,7 +58,7 @@ export function AppHeader({
       </div>
 
       <div className="ml-4 flex shrink-0 items-center gap-4">
-        <Button className="hidden md:inline-flex md:px-6">+ Add New Task</Button>
+        <Button onClick={onOpenAddTask}>+ Add New Task</Button>
 
         <Button size="icon" className="md:hidden" aria-label="Add new task">
           <img src={addTaskMobile} alt="" />

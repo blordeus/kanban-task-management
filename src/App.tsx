@@ -35,7 +35,7 @@ function App() {
 
   const activeBoard = useMemo(
     () => boardData.boards[activeBoardIndex],
-    [activeBoardIndex]
+    [activeBoardIndex],
   );
 
   return (
