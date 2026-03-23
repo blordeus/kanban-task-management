@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "./components/layout/app-shell";
 import { BoardView } from "./components/board/board-view";
 import { boardData } from "./data/boards";
+import type { Task } from "./types/board";
 
 function App() {
   const [activeBoardIndex, setActiveBoardIndex] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     const savedTheme = localStorage.getItem("kanban-theme");
     return savedTheme === "dark" ? "dark" : "light";
@@ -41,22 +43,27 @@ function App() {
       boards={boardData.boards}
       activeBoardIndex={activeBoardIndex}
       activeBoardName={activeBoard.name}
+      activeBoard={activeBoard}
       isSidebarOpen={isSidebarOpen}
       isMobileMenuOpen={isMobileMenuOpen}
+      selectedTask={selectedTask}
       onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
       onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
       onBoardChange={(index) => {
         setActiveBoardIndex(index);
         setIsMobileMenuOpen(false);
+        setSelectedTask(null);
       }}
       onHideSidebar={() => setIsSidebarOpen(false)}
       onShowSidebar={() => setIsSidebarOpen(true)}
+      onSelectTask={setSelectedTask}
+      onCloseTaskModal={() => setSelectedTask(null)}
       theme={theme}
       onToggleTheme={() =>
         setTheme((prev) => (prev === "light" ? "dark" : "light"))
       }
     >
-      <BoardView board={activeBoard} />
+      <BoardView board={activeBoard} onTaskClick={setSelectedTask} />
     </AppShell>
   );
 }

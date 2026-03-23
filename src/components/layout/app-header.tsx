@@ -4,19 +4,26 @@ import chevronUp from "../../assets/icons/icon-chevron-up.svg";
 import ellipsis from "../../assets/icons/icon-vertical-ellipsis.svg";
 import addTaskMobile from "../../assets/icons/icon-add-task-mobile.svg";
 import { Button } from "../ui/button";
+import { BoardActionsMenu } from "./board-actions-menu";
 
 type AppHeaderProps = {
   boardName: string;
   isSidebarOpen: boolean;
   isMobileMenuOpen: boolean;
+  isBoardMenuOpen: boolean;
   onToggleMobileMenu: () => void;
+  onToggleBoardMenu: () => void;
+  onCloseBoardMenu: () => void;
 };
 
 export function AppHeader({
   boardName,
   isSidebarOpen,
   isMobileMenuOpen,
+  isBoardMenuOpen,
   onToggleMobileMenu,
+  onToggleBoardMenu,
+  onCloseBoardMenu,
 }: AppHeaderProps) {
   return (
     <header className="relative z-30 flex h-16 items-center justify-between border-b border-[var(--border-color)] bg-[var(--surface)] px-4 md:h-20 md:px-6 lg:h-24 lg:px-8">
@@ -55,13 +62,22 @@ export function AppHeader({
           <img src={addTaskMobile} alt="" />
         </Button>
 
-        <button
-          type="button"
-          className="shrink-0 text-medium-grey transition hover:opacity-70"
-          aria-label="Open board actions"
-        >
-          <img src={ellipsis} alt="" />
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={onToggleBoardMenu}
+            className="shrink-0 text-medium-grey transition hover:opacity-70"
+            aria-label="Open board actions"
+            aria-expanded={isBoardMenuOpen}
+          >
+            <img src={ellipsis} alt="" />
+          </button>
+
+          <BoardActionsMenu
+            isOpen={isBoardMenuOpen}
+            onClose={onCloseBoardMenu}
+          />
+        </div>
       </div>
     </header>
   );

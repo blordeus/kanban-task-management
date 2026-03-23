@@ -1,4 +1,4 @@
-import type { Board } from "../../types/board";
+import type { Board, Task } from "../../types/board";
 import { Column } from "./column";
 import { EmptyBoard } from "./empty-board";
 
@@ -12,9 +12,10 @@ const dotColors = [
 
 type BoardViewProps = {
   board: Board;
+  onTaskClick: (task: Task) => void;
 };
 
-export function BoardView({ board }: BoardViewProps) {
+export function BoardView({ board, onTaskClick }: BoardViewProps) {
   if (board.columns.length === 0) {
     return <EmptyBoard />;
   }
@@ -27,6 +28,7 @@ export function BoardView({ board }: BoardViewProps) {
             key={column.name}
             column={column}
             colorClass={dotColors[index % dotColors.length]}
+            onTaskClick={onTaskClick}
           />
         ))}
 

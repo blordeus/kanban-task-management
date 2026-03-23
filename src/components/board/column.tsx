@@ -1,12 +1,13 @@
-import type { Column as ColumnType } from "../../types/board";
+import type { Column as ColumnType, Task } from "../../types/board";
 import { TaskCard } from "./task-card";
 
 type ColumnProps = {
   column: ColumnType;
   colorClass: string;
+  onTaskClick: (task: Task) => void;
 };
 
-export function Column({ column, colorClass }: ColumnProps) {
+export function Column({ column, colorClass, onTaskClick }: ColumnProps) {
   return (
     <section className="w-[280px] shrink-0">
       <div className="mb-6 flex items-center gap-3">
@@ -18,7 +19,7 @@ export function Column({ column, colorClass }: ColumnProps) {
 
       <div className="space-y-5">
         {column.tasks.map((task) => (
-          <TaskCard key={task.title} task={task} />
+          <TaskCard key={task.title} task={task} onClick={onTaskClick} />
         ))}
       </div>
     </section>
