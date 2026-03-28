@@ -24,6 +24,55 @@ function findColumnByOverId(board: Board, overId: string) {
   );
 }
 
+function moveTaskBetweenColumns(
+  board: Board,
+  taskId: string,
+  sourceColumnId: string,
+  destinationColumnId: string,
+  insertIndex?: number
+): Board {
+  let movedTask: Task | null = null;
+
+  // Remove task from source column
+  const columnsWithoutTask = board.columns.map((column) => {
+    if (column.id === sourceColumnId) {
+      return {
+        ...column,
+        tasks: column.tasks.filter((task) => {
+          if (task.id === taskId) {
+            movedTask = {
+              ...task,
+              statusColumnId: destinationColumnId,
+            };
+            return false;
+          }
+          return true;
+        }),
+      };
+    }
+    return column;
+  });
+
+  if (!movedTask) return board;
+
+  // Add task to destination column
+  return {
+    ...board,
+    columns: columnsWithoutTask.map((column) => {
+      if (column.id === destinationColumnId) {
+        const nextTasks = [...column.tasks];
+        const targetIndex = insertIndex !== undefined ? insertIndex : nextTasks.length;
+        nextTasks.splice(targetIndex, 0, movedTask as Task);
+        return {
+          ...column,
+          tasks: nextTasks,
+        };
+      }
+      return column;
+    }),
+  };
+}
+
 function App() {
   const [boards, setBoards] = useState<Board[]>(() => {
     const savedBoards = localStorage.getItem(STORAGE_KEYS.boards);
@@ -40,7 +89,12 @@ function App() {
   });
 
   const [activeBoardId, setActiveBoardId] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_KEYS.activeBoardId);
+    try {
+      return localStorage.getItem(STORAGE_KEYS.activeBoardId);
+    } catch (error) {
+      console.warn("Failed to read active board ID from localStorage:", error);
+      return null;
+    }
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -58,29 +112,50 @@ function App() {
   const [isDeleteBoardOpen, setIsDeleteBoardOpen] = useState(false);
 
   const [theme, setTheme] = useState<"light" | "dark">(() => {
-    const savedTheme = localStorage.getItem(STORAGE_KEYS.theme);
-    return savedTheme === "dark" ? "dark" : "light";
+    try {
+      const savedTheme = localStorage.getItem(STORAGE_KEYS.theme);
+      return savedTheme === "dark" ? "dark" : "light";
+    } catch (error) {
+      console.warn("Failed to read theme from localStorage:", error);
+      return "light";
+    }
   });
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem(STORAGE_KEYS.theme, theme);
+    try {
+      localStorage.setItem(STORAGE_KEYS.theme, theme);
+    } catch (error) {
+      console.warn("Failed to save theme to localStorage:", error);
+    }
   }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.boards, JSON.stringify(boards));
+    try {
+      localStorage.setItem(STORAGE_KEYS.boards, JSON.stringify(boards));
+    } catch (error) {
+      console.warn("Failed to save boards to localStorage:", error);
+    }
   }, [boards]);
 
   useEffect(() => {
-    if (activeBoardId) {
-      localStorage.setItem(STORAGE_KEYS.activeBoardId, activeBoardId);
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.activeBoardId);
+    try {
+      if (activeBoardId) {
+        localStorage.setItem(STORAGE_KEYS.activeBoardId, activeBoardId);
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.activeBoardId);
+      }
+    } catch (error) {
+      console.warn("Failed to save active board ID to localStorage:", error);
     }
   }, [activeBoardId]);
 
   useEffect(() => {
+    let isMounted = true;
+
     const syncLayout = () => {
+      if (!isMounted) return;
+      
       const isDesktop = window.innerWidth >= 1024;
       setIsSidebarOpen(isDesktop);
 
@@ -92,20 +167,23 @@ function App() {
     syncLayout();
     window.addEventListener("resize", syncLayout);
 
-    return () => window.removeEventListener("resize", syncLayout);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("resize", syncLayout);
+    };
   }, []);
 
   const activeBoardIndex = useMemo(() => {
-    if (!boards.length) return 0;
+    if (!boards.length) return -1;
 
     const foundIndex = boards.findIndex((board) => board.id === activeBoardId);
     return foundIndex >= 0 ? foundIndex : 0;
   }, [boards, activeBoardId]);
 
-  const activeBoard = useMemo(
-    () => boards[activeBoardIndex] ?? boards[0],
-    [boards, activeBoardIndex],
-  );
+  const activeBoard = useMemo(() => {
+    if (!boards.length || activeBoardIndex < 0) return null;
+    return boards[activeBoardIndex] ?? boards[0] ?? null;
+  }, [boards, activeBoardIndex]);
 
   const selectedTask = useMemo(() => {
     if (!activeBoard || !selectedTaskId) return null;
@@ -120,12 +198,17 @@ function App() {
 
   useEffect(() => {
     if (!boards.length) {
-      setActiveBoardId(null);
+      if (activeBoardId !== null) {
+        setActiveBoardId(null);
+      }
       return;
     }
 
     if (!activeBoardId || !boards.some((board) => board.id === activeBoardId)) {
-      setActiveBoardId(boards[0].id);
+      const firstBoardId = boards[0]?.id;
+      if (firstBoardId && firstBoardId !== activeBoardId) {
+        setActiveBoardId(firstBoardId);
+      }
     }
   }, [boards, activeBoardId]);
 
@@ -313,18 +396,26 @@ function App() {
         .filter((subtask) => subtask.title),
     };
 
+    const sourceColumn = findColumnByTaskId(activeBoard, selectedTask.id);
+    if (!sourceColumn) return;
+
     setBoards((prev) =>
       prev.map((board) => {
         if (board.id !== activeBoard.id) return board;
 
-        const columnsWithoutTask = board.columns.map((column) => ({
-          ...column,
-          tasks: column.tasks.filter((task) => task.id !== selectedTask.id),
-        }));
-
-        return {
+        // First remove the old task
+        const boardWithoutTask = {
           ...board,
-          columns: columnsWithoutTask.map((column) =>
+          columns: board.columns.map((column) => ({
+            ...column,
+            tasks: column.tasks.filter((task) => task.id !== selectedTask.id),
+          })),
+        };
+
+        // Then add the updated task to the correct column
+        return {
+          ...boardWithoutTask,
+          columns: boardWithoutTask.columns.map((column) =>
             column.id === updatedTask.statusColumnId
               ? { ...column, tasks: [...column.tasks, updatedTask] }
               : column,
@@ -389,36 +480,13 @@ function App() {
   function handleChangeTaskStatus(taskId: string, nextColumnId: string) {
     if (!activeBoard) return;
 
+    const sourceColumn = findColumnByTaskId(activeBoard, taskId);
+    if (!sourceColumn) return;
+
     setBoards((prev) =>
       prev.map((board) => {
         if (board.id !== activeBoard.id) return board;
-
-        let movedTask: Task | null = null;
-
-        const columnsWithoutTask = board.columns.map((column) => ({
-          ...column,
-          tasks: column.tasks.filter((task) => {
-            if (task.id === taskId) {
-              movedTask = {
-                ...task,
-                statusColumnId: nextColumnId,
-              };
-              return false;
-            }
-            return true;
-          }),
-        }));
-
-        if (!movedTask) return board;
-
-        return {
-          ...board,
-          columns: columnsWithoutTask.map((column) =>
-            column.id === nextColumnId
-              ? { ...column, tasks: [...column.tasks, movedTask as Task] }
-              : column,
-          ),
-        };
+        return moveTaskBetweenColumns(board, taskId, sourceColumn.id, nextColumnId);
       }),
     );
   }
@@ -442,10 +510,10 @@ function App() {
       );
       const newIndex =
         overId === destinationColumn.id
-          ? destinationColumn.tasks.length - 1
+          ? destinationColumn.tasks.length
           : destinationColumn.tasks.findIndex((task) => task.id === overId);
 
-      if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return;
+      if (oldIndex < 0 || (newIndex < 0 && overId !== destinationColumn.id) || oldIndex === newIndex) return;
 
       setBoards((prev) =>
         prev.map((board) => {
@@ -468,49 +536,17 @@ function App() {
       return;
     }
 
-    const movingTask = sourceColumn.tasks.find((task) => task.id === activeTaskId);
-    if (!movingTask) return;
-
-    const updatedTask: Task = {
-      ...movingTask,
-      statusColumnId: destinationColumn.id,
-    };
-
     const destinationIndex =
       overId === destinationColumn.id
         ? destinationColumn.tasks.length
         : destinationColumn.tasks.findIndex((task) => task.id === overId);
 
+    const insertIndex = destinationIndex < 0 ? destinationColumn.tasks.length : destinationIndex;
+
     setBoards((prev) =>
       prev.map((board) => {
         if (board.id !== activeBoard.id) return board;
-
-        return {
-          ...board,
-          columns: board.columns.map((column) => {
-            if (column.id === sourceColumn.id) {
-              return {
-                ...column,
-                tasks: column.tasks.filter((task) => task.id !== activeTaskId),
-              };
-            }
-
-            if (column.id === destinationColumn.id) {
-              const nextTasks = [...column.tasks];
-              const insertIndex =
-                destinationIndex < 0 ? nextTasks.length : destinationIndex;
-
-              nextTasks.splice(insertIndex, 0, updatedTask);
-
-              return {
-                ...column,
-                tasks: nextTasks,
-              };
-            }
-
-            return column;
-          }),
-        };
+        return moveTaskBetweenColumns(board, activeTaskId, sourceColumn.id, destinationColumn.id, insertIndex);
       }),
     );
   }
