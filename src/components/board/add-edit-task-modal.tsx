@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { TextField } from "../forms/text-field";
 import { TextareaField } from "../forms/textarea-field";
 import { SelectField } from "../forms/select-field";
+import { sanitizeInput } from "../../utils/validation";
 import iconCross from "../../assets/icons/icon-cross.svg";
 
 type SubtaskInput = {
@@ -68,13 +69,21 @@ export function AddEditTaskModal({
       return;
     }
 
+    if (statusOptions.length === 0) {
+      console.error("No status options available");
+      return;
+    }
+
     setTitleError("");
 
     onSubmit({
-      title: taskTitle,
-      description,
+      title: sanitizeInput(taskTitle),
+      description: sanitizeInput(description),
       statusColumnId: statusColumnId || statusOptions[0]?.value || "",
-      subtasks: normalizedSubtasks,
+      subtasks: normalizedSubtasks.map(subtask => ({
+        ...subtask,
+        name: sanitizeInput(subtask.name)
+      })).filter(subtask => subtask.name.trim() !== ""),
     });
   }
 
@@ -122,9 +131,11 @@ export function AddEditTaskModal({
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setSubtasks(normalizedSubtasks.filter((_, i) => i !== index))
-                    }
+                    onClick={() => {
+                      const filtered = normalizedSubtasks.filter((_, i) => i !== index);
+                      // Ensure at least one subtask remains, even if empty
+                      setSubtasks(filtered.length > 0 ? filtered : [{ id: "", name: "" }]);
+                    }}
                     aria-label={`Remove subtask ${index + 1}`}
                     className="rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple"
                   >

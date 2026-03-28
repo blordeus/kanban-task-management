@@ -46,7 +46,7 @@ export function Sidebar({
               const isActive = index === activeBoardIndex;
 
               return (
-                <li key={board.name}>
+                <li key={board.id}>
                   <button
                     type="button"
                     onClick={() => onBoardChange(index)}
