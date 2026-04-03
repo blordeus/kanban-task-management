@@ -26,6 +26,9 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+  const { role, tabIndex, ...sortableAttributes } = attributes;
+  void role;
+  void tabIndex;
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     // Allow Enter and Space to open the task modal
@@ -42,11 +45,12 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
       type="button"
       onClick={() => onClick(task)}
       onKeyDown={handleKeyDown}
+      aria-grabbed={isDragging}
       aria-label={`Task: ${task.title}. ${completed} of ${total} subtasks completed. Press Enter to open details or use arrow keys to navigate.`}
       className={`w-full rounded-lg bg-[var(--surface)] px-4 py-[23px] text-left shadow-[0_4px_6px_rgba(54,78,126,0.101545)] transition hover:text-purple focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple ${
         isDragging ? "opacity-60" : ""
       }`}
-      {...attributes}
+      {...sortableAttributes}
       {...listeners}
     >
       <h3 className="text-[18px] font-bold leading-[23px] text-[var(--text-primary)]">

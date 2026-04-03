@@ -43,17 +43,18 @@ export function AppHeader({
         <div className="flex min-w-0 items-center gap-4">
           <img src={logoMobile} alt="Kanban" className="lg:hidden" />
 
+          <h1 className="truncate text-lg font-bold text-[var(--text-primary)] md:text-2xl">
+            {boardName}
+          </h1>
+
           <button
             type="button"
             onClick={onToggleMobileMenu}
-            className="flex min-w-0 items-center gap-2 lg:pointer-events-none"
+            className="flex shrink-0 items-center lg:pointer-events-none"
             aria-label="Toggle boards menu"
             aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-board-menu"
           >
-            <h1 className="truncate text-lg font-bold text-[var(--text-primary)] md:text-2xl">
-              {boardName}
-            </h1>
-
             <img
               src={isMobileMenuOpen ? chevronUp : chevronDown}
               alt=""
