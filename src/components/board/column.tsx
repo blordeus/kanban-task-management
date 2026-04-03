@@ -27,22 +27,24 @@ export function Column({ column, colorClass, onTaskClick }: ColumnProps) {
         items={column.tasks.map((task) => task.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div
+        <ul
           ref={setNodeRef}
-          className={`min-h-[24px] space-y-5 rounded-md transition ${
+          className={`m-0 min-h-[24px] list-none space-y-5 rounded-md p-0 transition ${
             isOver ? "bg-purple/5" : ""
           }`}
         >
           {column.tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onClick={onTaskClick} />
+            <li key={task.id}>
+              <TaskCard task={task} onClick={onTaskClick} />
+            </li>
           ))}
 
           {column.tasks.length === 0 ? (
-            <div className="rounded-md border border-dashed border-[var(--border-color)] px-4 py-6 text-center text-xs font-bold text-medium-grey">
+            <li className="rounded-md border border-dashed border-[var(--border-color)] px-4 py-6 text-center text-xs font-bold text-medium-grey">
               Drop tasks here
-            </div>
+            </li>
           ) : null}
-        </div>
+        </ul>
       </SortableContext>
     </section>
   );

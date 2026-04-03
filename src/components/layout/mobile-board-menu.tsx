@@ -29,6 +29,7 @@ export function MobileBoardMenu({
   return (
     <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose}>
       <div
+        id="mobile-board-menu"
         className="mx-4 mt-20 max-h-[calc(100vh-96px)] overflow-y-auto rounded-lg bg-[var(--surface)] py-4 shadow-[0_10px_20px_rgba(54,78,126,0.25)] md:mx-auto md:mt-24 md:w-[264px]"
         onClick={(event) => event.stopPropagation()}
       >
@@ -42,10 +43,11 @@ export function MobileBoardMenu({
               const isActive = index === activeBoardIndex;
 
               return (
-                <li key={board.name}>
-                  <button
-                    type="button"
-                    onClick={() => {
+                <li key={board.id}>
+                  <a
+                    href={`#board-${board.id}`}
+                    onClick={(event) => {
+                      event.preventDefault();
                       onBoardChange(index);
                       onClose();
                     }}
@@ -55,6 +57,7 @@ export function MobileBoardMenu({
                         ? "bg-purple text-white"
                         : "text-medium-grey hover:bg-purple/10 hover:text-purple"
                     )}
+                    aria-current={isActive ? "page" : undefined}
                   >
                     <img
                       src={iconBoard}
@@ -62,7 +65,7 @@ export function MobileBoardMenu({
                       className={isActive ? "brightness-0 invert" : ""}
                     />
                     <span>{board.name}</span>
-                  </button>
+                  </a>
                 </li>
               );
             })}

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import iconCross from "../../assets/icons/icon-cross.svg";
 
 type ListItem = {
@@ -18,6 +19,16 @@ export function DynamicInputList({
   onChange,
   addLabel,
 }: Props) {
+  useEffect(() => {
+    if (!values.some((value) => !value.id)) return;
+
+    onChange(
+      values.map((value) =>
+        value.id ? value : { ...value, id: crypto.randomUUID() }
+      )
+    );
+  }, [values, onChange]);
+
   const update = (index: number, value: string) => {
     const next = [...values];
     next[index] = {
@@ -32,7 +43,7 @@ export function DynamicInputList({
   };
 
   const add = () => {
-    onChange([...values, { id: "", name: "" }]);
+    onChange([...values, { id: crypto.randomUUID(), name: "" }]);
   };
 
   return (
@@ -43,7 +54,7 @@ export function DynamicInputList({
 
       <div className="space-y-3">
         {values.map((value, index) => (
-          <div key={value.id || index} className="flex items-center gap-4">
+          <div key={value.id} className="flex items-center gap-4">
             <input
               value={value.name}
               onChange={(e) => update(index, e.target.value)}
